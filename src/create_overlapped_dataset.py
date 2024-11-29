@@ -55,7 +55,8 @@ def add_noise_to_match_snr(audio, snr_db: int):
     # Add noise to the original audio
     noisy_audio = audio + noise
     noisy_audio = normalize_audio(noisy_audio)
-    return noisy_audio
+    # return noisy audio and also linear snr for metadata saving
+    return noisy_audio, snr_linear
 
 
 def load_random_wav(directory: str, target_sample_rate: int):
@@ -168,7 +169,7 @@ def mix_audio(
 
     # Make audios noisy
     snr_db = np.random.uniform(min_noise_desired_snr, max_noise_desired_snr)
-    noisy_ff_mixed_audio = add_noise_to_match_snr(ff_mixed_audio, snr_db)
+    noisy_ff_mixed_audio, snr_linear = add_noise_to_match_snr(ff_mixed_audio, snr_db)
 
     # Save noisy far-field audio
     noisy_ff_mixed_audio_file_path = os.path.join(
@@ -210,9 +211,10 @@ def mix_audio(
     metadata_entry = {
         "id": unique_id,
         "length_seconds": len(ff_mixed_audio) / target_sample_rate,
-        "audios_SIS_scale_db": scale_factor_DB,
-        "noisy_snr_db": snr_db,
-        "music_2_audio_SIS_scale_db": music_scale_factor_DB,
+        "added_noise_snr_db": round(snr_db, 3),
+        "added_noise_snr_linear": round(float(snr_linear), 3),
+        "music_2_audio_SIS_scale_db": round(music_scale_factor_DB, 3),
+        "music_2_audio_SIS_scale_linear": round(float(music_linear_scale_factor), 3),
         "additional_music": addition_music_str,
         "original_files": [
             {
@@ -226,6 +228,8 @@ def mix_audio(
                 "original_length": length2,
                 "padding_seconds": padding2,
                 "transcription": transcription2,
+                "audios_SIS_scale_db": round(scale_factor_DB, 3),
+                "audios_SIS_scale_linear": round(float(linear_scale_factor), 3),
             },
         ],
     }
