@@ -10,9 +10,9 @@
         "min_music_ssr": -9
     },
     "directories": {
-        "main_directory": "C:\\Users\\arifr\\SS_Dataset_preparation\\overlapped_dataset", 
-        "rir_directory": "C:\\Users\\arifr\\SS_Dataset_preparation\\MIT_RIR",
-        "music_directory": "C:\\Users\\arifr\\SS_Dataset_preparation\\free_sound"
+        "main_directory": "path to output dir", 
+        "rir_directory": "path to rir dir",
+        "music_directory": "path to additional music dir"
     }
 }
 

@@ -22,7 +22,7 @@ create config.json file in src and run program
     },
     "directories": {
         "main_directory": "path to output dir", 
-        "rir_directory": "path to rir dir"
+        "rir_directory": "path to rir dir",
         "music_directory": "path to additional music dir"
     }
 }
