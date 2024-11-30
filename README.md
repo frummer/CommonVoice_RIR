@@ -20,6 +20,7 @@ create config.json file in src and run program
         "max_music_ssr": -3, # DB scale signal to signal raio between mixture to added music
         "min_music_ssr": -9
     },
+    "opus_codec":{"apply_opus":true,"bitrate":"64k"}, # apply opus= true will save compressed wav files. bitrate should also be provided.
     "directories": {
         "main_directory": "path to output dir", 
         "rir_directory": "path to rir dir",

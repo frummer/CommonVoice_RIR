@@ -9,7 +9,7 @@ decoded_file = "./src/common_voice_ar_19065197_decoded.wav"
 try:
     # Convert WAV to Opus
     print("Encoding WAV to Opus...")
-    ffmpeg.input(input_file).output(output_file, acodec="libopus", ab="64k").run(
+    ffmpeg.input(input_file).output(output_file, acodec="libopus", ab="16k").run(
         overwrite_output=True
     )
     print(f"Encoded Opus file saved to {output_file}")

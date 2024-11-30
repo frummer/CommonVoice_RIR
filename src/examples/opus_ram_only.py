@@ -8,7 +8,7 @@ try:
     print("Encoding audio to Opus in memory...")
     encoded_opus, stderr = (
         ffmpeg.input(input_file)
-        .output("pipe:", format="opus", acodec="libopus", ab="64k")
+        .output("pipe:", format="opus", acodec="libopus", ab="16k")
         .run(capture_stdout=True, capture_stderr=True)
     )
     print("Encoding completed.")
