@@ -2,6 +2,7 @@ import json
 import os
 import random
 from datetime import datetime
+from typing import Dict
 from uuid import uuid4
 
 import librosa
@@ -9,6 +10,8 @@ import numpy as np
 import scipy.signal
 import soundfile as sf
 from datasets import load_dataset
+
+from utils.opus_codec import encode_decode_opus
 
 
 def normalize_audio(audio):
@@ -108,6 +111,7 @@ def mix_audio(
     metadata,
     rir_directory: str,
     music_directory: str,
+    opus_codec: Dict[str, str | bool],
 ):
     # Load audio files
     y1, sr1 = librosa.load(file1_path, sr=None)
@@ -167,6 +171,17 @@ def mix_audio(
     mixed_audio_ff_file = os.path.join(subdirectory_path, f"ff_{unique_id}.wav")
     sf.write(mixed_audio_ff_file, ff_mixed_audio, target_sample_rate)
 
+    # Save encoded far-field audio
+    if opus_codec["apply_opus"]:
+        mixed_audio_ff_compressed_file = os.path.join(
+            subdirectory_path, f"ff_{unique_id}_opus.wav"
+        )
+        encode_decode_opus(
+            input_file_path=mixed_audio_ff_file,
+            output_file_path=mixed_audio_ff_compressed_file,
+            bit_rate=opus_codec["bitrate"],
+        )
+
     # Make audios noisy
     snr_db = np.random.uniform(min_noise_desired_snr, max_noise_desired_snr)
     noisy_ff_mixed_audio, snr_linear = add_noise_to_match_snr(ff_mixed_audio, snr_db)
@@ -176,6 +191,17 @@ def mix_audio(
         subdirectory_path, f"{unique_id}_noisy.wav"
     )
     sf.write(noisy_ff_mixed_audio_file_path, noisy_ff_mixed_audio, target_sample_rate)
+    # Save encoded noisy far-field audio
+    # Save encoded far-field audio
+    if opus_codec["apply_opus"]:
+        noisy_ff_mixed_audio_compressed_file_path = os.path.join(
+            subdirectory_path, f"ff_{unique_id}_noisy_opus.wav"
+        )
+        encode_decode_opus(
+            input_file_path=noisy_ff_mixed_audio_file_path,
+            output_file_path=noisy_ff_mixed_audio_compressed_file_path,
+            bit_rate=opus_codec["bitrate"],
+        )
 
     # add random noise from music directory and save file
     additional_music_wav, addition_music_str = load_random_wav(
@@ -203,6 +229,16 @@ def mix_audio(
         target_sample_rate,
     )
 
+    # Save compressed mix with noise and overlapped music
+    if opus_codec["apply_opus"]:
+        noisy_ff_mixed_audio_with_music_compressed_file_path = os.path.join(
+            subdirectory_path, f"ff_{unique_id}_noisy_with_music_opus.wav"
+        )
+        encode_decode_opus(
+            input_file_path=mixed_audio_ff_file_with_music_path,
+            output_file_path=noisy_ff_mixed_audio_with_music_compressed_file_path,
+            bit_rate=opus_codec["bitrate"],
+        )
     # save additional music
     additional_music_path = os.path.join(subdirectory_path, addition_music_str)
     sf.write(additional_music_path, additional_music_wav, target_sample_rate)
@@ -250,6 +286,7 @@ def process_common_voice(
     min_conversation_desired_ssr: int,
     rir_directory: str,
     music_directory: str,
+    opus_codec: Dict[str, str | bool],
 ):
     os.makedirs(output_dir, exist_ok=True)
     metadata = []
@@ -283,6 +320,7 @@ def process_common_voice(
             metadata,
             rir_directory=rir_directory,
             music_directory=music_directory,
+            opus_codec=opus_codec,
         )
 
     # Save metadata as JSON
@@ -343,4 +381,5 @@ if __name__ == "__main__":
         min_music_ssr=min_music_ssr,
         rir_directory=config["directories"]["rir_directory"],
         music_directory=config["directories"]["music_directory"],
+        opus_codec=config["opus_codec"],
     )
