@@ -341,8 +341,7 @@ if __name__ == "__main__":
     max_music_ssr = config["signal_to_signal_ratios"]["max_music_ssr"]
     min_music_ssr = config["signal_to_signal_ratios"]["min_music_ssr"]
     # load dataset
-    #dataset = load_dataset("mozilla-foundation/common_voice_12_0","ar",split="test",trust_remote_code=True)
-    dataset = load_from_disk('/mnt/data')
+    dataset = load_dataset("mozilla-foundation/common_voice_12_0","ar",split="test",trust_remote_code=True)
     # fmt: on
     # Directories
     # Get the current date and time

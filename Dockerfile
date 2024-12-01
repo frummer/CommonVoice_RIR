@@ -30,9 +30,7 @@ ENV HF_TOKEN=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
 # Load and preprocess the dataset
 RUN python -c "from datasets import load_dataset; \
     import os; \
-    dataset = load_dataset('mozilla-foundation/common_voice_12_0', 'ar', split='test', trust_remote_code=True); \
-    dataset = dataset.map(lambda example: {'path': os.path.join('/mnt/data', '/'.join(example['path'].split('/')[-5:]))}); \
-    dataset.save_to_disk('/mnt/data')"
+    dataset = load_dataset('mozilla-foundation/common_voice_12_0', 'ar', split='test', trust_remote_code=True);"
 
 # Set an environment variable for dataset path
 ENV DATASET_PATH=/mnt/data
