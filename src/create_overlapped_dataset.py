@@ -9,7 +9,7 @@ import librosa
 import numpy as np
 import scipy.signal
 import soundfile as sf
-from datasets import load_dataset
+from datasets import load_dataset, load_from_disk
 
 from utils.opus_codec import encode_decode_opus
 
@@ -330,9 +330,7 @@ def process_common_voice(
 
 if __name__ == "__main__":
     # load config
-    config_path = os.getenv(
-        "CONFIG_PATH", "C:\\Users\\arifr\\SS_Dataset_preparation\\src\\config.json"
-    )  # Fallback to a default
+    config_path = os.getenv("CONFIG_PATH", "./src/config.json")  # Fallback to a default
     with open(config_path, "r") as f:
         config = json.load(f)
     # fmt: off
@@ -343,7 +341,8 @@ if __name__ == "__main__":
     max_music_ssr = config["signal_to_signal_ratios"]["max_music_ssr"]
     min_music_ssr = config["signal_to_signal_ratios"]["min_music_ssr"]
     # load dataset
-    dataset = load_dataset("mozilla-foundation/common_voice_12_0","ar",split="test",trust_remote_code=True)
+    #dataset = load_dataset("mozilla-foundation/common_voice_12_0","ar",split="test",trust_remote_code=True)
+    dataset = load_from_disk('/mnt/data')
     # fmt: on
     # Directories
     # Get the current date and time

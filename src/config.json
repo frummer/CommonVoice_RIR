@@ -11,9 +11,9 @@
     },
     "opus_codec":{"apply_opus":true,"bitrate":"64k"},
     "directories": {
-        "main_directory": "path to output dir", 
-        "rir_directory": "path to rir dir",
-        "music_directory": "path to additional music dir"
+        "main_directory": "./overlapped_samples",
+        "rir_directory": "./MIT_RIR",
+        "music_directory": "./free_sound"
     }
 }
 

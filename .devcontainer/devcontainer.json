@@ -1,0 +1,26 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/docker-existing-dockerfile
+{
+	"name": "Common Voice RIR",
+	"image": "common_voice_rir:0.0.3", // Replace with your Docker image name and tag
+	"workspaceFolder": "/app", // Path where your project will be available inside the container
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                //added by VSCode
+                "ms-python.python",
+				"ms-azuretools.vscode-docker", // Optional, for Docker integration
+				"ms-python.black-formatter"
+            ]
+        },
+		"settings":{
+			"python.defaultInterpreterPath": "/usr/local/bin/python" // Adjust based on your interpreter path
+		  }
+    },
+	// Uncomment to connect as an existing user other than the container default. More info: https://aka.ms/dev-containers-non-root.
+	"remoteUser": "root",
+	"mounts": [
+		"source=C:\\Users\\arifr\\SS_Dataset_preparation\\MIT_RIR,target=/app/MIT_RIR,type=bind", // Replace with your local directory
+		"source=C:\\Users\\arifr\\SS_Dataset_preparation\\free_sound,target=/app/free_sound,type=bind" // Replace with your local directory
+	]
+}
