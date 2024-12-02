@@ -1,5 +1,5 @@
 {
-    "desired_mixtures_amount": 3,
+    "desired_mixtures_amount": 7,
     "target_sample_rate": 8000,
     "signal_to_signal_ratios": {
         "max_noise_desired_snr": 12,

@@ -360,7 +360,7 @@ if __name__ == "__main__":
     )
     os.makedirs(output_directory, exist_ok=True)
     # save config file
-    file_path = os.path.join(output_directory, "config")
+    file_path = os.path.join(output_directory, "config.json")
     with open(file_path, "w") as f:
         json.dump(config, f, indent=4)
     metadata_file_path = os.path.join(output_directory, "metadata.json")

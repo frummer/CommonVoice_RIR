@@ -21,6 +21,7 @@
 	"remoteUser": "root",
 	"mounts": [
 		"source=C:\\Users\\arifr\\SS_Dataset_preparation\\MIT_RIR,target=/app/MIT_RIR,type=bind", // Replace with your local directory
-		"source=C:\\Users\\arifr\\SS_Dataset_preparation\\free_sound,target=/app/free_sound,type=bind" // Replace with your local directory
+		"source=C:\\Users\\arifr\\SS_Dataset_preparation\\free_sound,target=/app/free_sound,type=bind", // Replace with your local directory
+		"source=C:\\Users\\arifr\\mixture_output_files\\overlapped_samples,target=/app/overlapped_samples,type=bind" // Replace with your local directory
 	]
 }
