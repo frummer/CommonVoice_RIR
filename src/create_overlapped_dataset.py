@@ -330,7 +330,9 @@ def process_common_voice(
 
 if __name__ == "__main__":
     # load config
-    config_path = os.getenv("CONFIG_PATH", "./src/config.json")  # Fallback to a default
+    config_path = os.getenv(
+        "CONFIG_PATH", "./src/create_overlapped_dataset_config.json"
+    )  # Fallback to a default
     with open(config_path, "r") as f:
         config = json.load(f)
     # fmt: off
