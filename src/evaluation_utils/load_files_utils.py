@@ -1,6 +1,8 @@
 import json
 import os
 
+import librosa
+
 
 class ConfigValidationError(Exception):
     """Custom exception for configuration validation errors."""
@@ -38,13 +40,15 @@ def load_and_validate_config(file_path):
         print("Error: Invalid JSON format. Details: {e}", flush=True)
         raise ConfigValidationError
 
-    # Validate the presence of the "directories" key
-    if "directories" not in config_data:
-        print(
-            "Error: Missing 'directories' key in the config file. Invalid input config",
-            flush=True,
-        )
-        raise ConfigValidationError
+    # Validate the presence of the 1st hierarchy keys
+    esseential_keys = ["target_sample_rate", "directories"]
+    for key in esseential_keys:
+        if key not in config_data:
+            print(
+                f"Error: Missing key '{key}' the config file. Invalid input config",
+                flush=True,
+            )
+            raise ConfigValidationError
 
     # Validate that "directories" is a dictionary
     directories = config_data["directories"]
@@ -79,3 +83,12 @@ def load_metadata(dataset_dir: str):
     except Exception as e:
         print(f"Error loading metadata: {e}")
         raise ErrorLoadingMetadataError
+
+
+def load_audio_and_resmaple(audio_path: str, target_sample_rate: int):
+    resampled = False
+    audio, sr = librosa.load(audio_path, sr=None)
+    if sr != target_sample_rate:
+        audio = librosa.resample(audio, orig_sr=sr, target_sr=target_sample_rate)
+        resampled = True
+    return audio, resampled
