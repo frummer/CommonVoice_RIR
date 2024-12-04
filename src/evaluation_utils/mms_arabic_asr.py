@@ -2,6 +2,7 @@ import librosa
 import torch
 
 import werpy
+import jiwer
 from transformers import AutoProcessor, Wav2Vec2ForCTC
 
 
@@ -66,6 +67,33 @@ class MMSArabicASR:
         """
         reference = werpy.normalize(input)
         return reference
+
+    @staticmethod
+    def jiwer_evaluation(reference, hypothesis):
+        # Use built-in normalization pipeline
+        # Custom transformation pipeline
+        transforms = jiwer.Compose(
+            [
+                jiwer.RemoveEmptyStrings(),
+                jiwer.RemoveMultipleSpaces(),
+                jiwer.Strip(),
+                jiwer.RemovePunctuation()
+            ]
+        )
+
+            # Transform reference and hypothesis
+        transformed_reference = transforms(reference)
+        transformed_hypothesis = transforms(hypothesis)
+        # Calculate WER and CER using the built-in normalization
+        wer_value = jiwer.wer(
+            transformed_reference,
+            transformed_hypothesis
+        )
+        cer_value = jiwer.cer(
+            transformed_reference,
+            transformed_hypothesis
+        )
+        return wer_value, cer_value
 
 
 

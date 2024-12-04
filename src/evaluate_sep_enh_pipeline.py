@@ -96,6 +96,9 @@ def main():
         # transcribe gt2 vs transcription_g2
         clean1_wer_summary = asr_system.calculate_wer([normalized_gt1_transcription], [clean_gt_1_transcription])
         clean2_wer_summary = asr_system.calculate_wer([normalized_gt2_transcription], [clean_gt_2_transcription])
+        jiwer_clean1_wer, jiwer_clean1_cer = asr_system.jiwer_evaluation(gt1_transcription, clean_gt_1_transcription)
+        jiwer_clean2_wer, jiwer_clean2_cer = asr_system.jiwer_evaluation(gt2_transcription, clean_gt_2_transcription)
+
         # transcribe gt1_audio_file vs transcription_g1
         # transcribe gt1_audio_file vs transcription_g2
         separated1_1_wer_summary = asr_system.calculate_wer([normalized_gt1_transcription], [sep_audio_1_transcription])
@@ -106,6 +109,10 @@ def main():
         separated2_2_wer_summary = asr_system.calculate_wer([normalized_gt2_transcription], [sep_audio_2_transcription])
         print(f"clean1_wer_summary:{clean1_wer_summary}")
         print(f"clean2_wer_summary:{clean2_wer_summary}")
+        print(f"jiwer_clean1_wer:{jiwer_clean1_wer}")
+        print(f"jiwer_clean1_cer:{jiwer_clean1_cer}")
+        print(f"jiwer_clean2_wer:{jiwer_clean2_wer}")
+        print(f"jiwer_clean2_cer:{jiwer_clean2_cer}")
         print(f"separated1_1_wer_summary:{separated1_1_wer_summary}")
         print(f"separated1_2_wer_summary:{separated1_2_wer_summary}")
         print(f"separated2_1_wer_summary:{separated2_1_wer_summary}")
