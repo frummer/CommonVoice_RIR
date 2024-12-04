@@ -15,13 +15,15 @@ class MMSArabicASR:
         self.model_id = model_id
         self.target_lang = target_lang
         self.sampling_rate = sampling_rate
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
         print("Loading Model...")
         self.processor = AutoProcessor.from_pretrained(
             model_id, target_lang=target_lang
         )
         self.model = Wav2Vec2ForCTC.from_pretrained(
             model_id, target_lang=target_lang, ignore_mismatched_sizes=True
-        )
+        ).to(self.device)
 
     def preprocess_audio(self, waveform, sr):
         """
@@ -34,7 +36,7 @@ class MMSArabicASR:
             )
         input_values = self.processor(
             waveform, return_tensors="pt", sampling_rate=self.sampling_rate
-        ).input_values
+        ).input_values.to(self.device)
         return input_values
 
     def transcribe(self, waveform, sr):
