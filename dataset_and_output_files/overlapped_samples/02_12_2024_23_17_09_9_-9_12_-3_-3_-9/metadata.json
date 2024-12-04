@@ -1,0 +1,27 @@
+[
+    {
+        "id": "e8d6b615-f62c-4974-ba0f-4b7fc6804577",
+        "length_seconds": 3.970875,
+        "added_noise_snr_db": 11.983,
+        "added_noise_snr_linear": 15.786,
+        "music_2_audio_SIS_scale_db": -4.942,
+        "music_2_audio_SIS_scale_linear": 2.889,
+        "additional_music": "noise-free-sound-0675.wav",
+        "original_files": [
+            {
+                "file": "common_voice_ar_24597105.mp3",
+                "original_length": 4.14,
+                "padding_seconds": 0,
+                "transcription": "أبا نزار تفسد القوم النعم"
+            },
+            {
+                "file": "common_voice_ar_23395303.mp3",
+                "original_length": 3.744,
+                "padding_seconds": 0.396,
+                "transcription": "الكلام فضة ، لكن الصمت ذهب.",
+                "audios_SIS_scale_db": 6.863,
+                "audios_SIS_scale_linear": 0.712
+            }
+        ]
+    }
+]

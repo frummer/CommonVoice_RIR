@@ -1,7 +1,7 @@
 import librosa
 import torch
 
-# import werpy
+import werpy
 from transformers import AutoProcessor, Wav2Vec2ForCTC
 
 
@@ -56,8 +56,17 @@ class MMSArabicASR:
         """
         Calculate Word Error Rate (WER) between reference and hypothesis transcriptions.
         """
-        summary = werpy.summary(reference, hypothesis)
+        summary = werpy.wer(reference, hypothesis)
         return summary
+    
+    @staticmethod
+    def normalize(input):
+        """
+        Calculate Word Error Rate (WER) between reference and hypothesis transcriptions.
+        """
+        reference = werpy.normalize(input)
+        return reference
+
 
 
 # Example usage

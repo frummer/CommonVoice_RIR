@@ -1,0 +1,21 @@
+{
+    "desired_mixtures_amount": 20,
+    "target_sample_rate": 8000,
+    "signal_to_signal_ratios": {
+        "max_noise_desired_snr": 12,
+        "min_noise_desired_snr": -3,
+        "max_conversation_desired_ssr": 9,
+        "min_conversation_desired_ssr": -9,
+        "max_music_ssr": -3,
+        "min_music_ssr": -9
+    },
+    "opus_codec": {
+        "apply_opus": true,
+        "bitrate": "64k"
+    },
+    "directories": {
+        "main_directory": "./overlapped_samples",
+        "rir_directory": "./MIT_RIR",
+        "music_directory": "./free_sound"
+    }
+}

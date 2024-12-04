@@ -56,38 +56,60 @@ def main():
         gt2_transcription = entry["original_files"][1]["transcription"]
         # load - separated audio1
         separated_file_1_path = os.path.join(
-            separatd_audios_dir, f"ff_{id}_noisy_with_music_spk1_corrected.wav"
+            separatd_audios_dir, f"ff_{id}_noisy_with_music_opus_spk1_corrected.wav"
         )
-        separated_audio_file_1 = load_audio_and_resmaple(
+        separated_audio_file_1, _resampled3 = load_audio_and_resmaple(
             audio_path=separated_file_1_path, target_sample_rate=target_sample_rate
         )
         # load - separated audio2
         separated_file_2_path = os.path.join(
-            separatd_audios_dir, f"ff_{id}_noisy_with_music_spk2_corrected.wav"
+            separatd_audios_dir, f"ff_{id}_noisy_with_music_opus_spk2_corrected.wav"
         )
-        separated_audio_file_2 = load_audio_and_resmaple(
+        separated_audio_file_2, _resampled4 = load_audio_and_resmaple(
             audio_path=separated_file_2_path, target_sample_rate=target_sample_rate
         )
 
         # Step 3.2 transcribe all audios:
         # transcribe gt1
-        # Perform transcription
-        gt1_transcription = asr_system.transcribe(gt1_audio, 16000)
-        # transcribe gt2
-        gt2_transcription = asr_system.transcribe(gt2_audio, 16000)
+        print(f"gt1_transcription:{gt1_transcription}")
+        print(f"gt2_transcription:{gt2_transcription}")
+        normalized_gt1_transcription = asr_system.normalize([gt1_transcription])
+        normalized_gt2_transcription = asr_system.normalize([gt2_transcription])
+        print(f"normalized_gt1_transcription:{normalized_gt1_transcription}")
+        print(f"normalized_gt2_transcription:{normalized_gt2_transcription}")
 
+        # Perform transcription
+        clean_gt_1_transcription = asr_system.transcribe(gt1_audio, 16000)
+        # transcribe gt2
+        clean_gt_2_transcription = asr_system.transcribe(gt2_audio, 16000)
+        print(f"clean_gt_1_transcription:{clean_gt_1_transcription}")
+        print(f"clean_gt_2_transcription:{clean_gt_2_transcription}")
         # transcribe audio1_file
-        gt1_transcription = asr_system.transcribe(separated_audio_file_1, 16000)
-        # transcribe audio2_file
-        gt2_transcription = asr_system.transcribe(separated_audio_file_2, 16000)
+        sep_audio_1_transcription = asr_system.transcribe(separated_audio_file_1, 16000)
+        sep_audio_2_transcription = asr_system.transcribe(separated_audio_file_2, 16000)
+        print(f"sep_audio_1_transcription:{sep_audio_1_transcription}")
+        print(f"sep_audio_2_transcription:{sep_audio_2_transcription}")
+
 
         # Step 3.3 calculate WER:
         # transcribe gt1 vs transcription_g1
         # transcribe gt2 vs transcription_g2
+        clean1_wer_summary = asr_system.calculate_wer([normalized_gt1_transcription], [clean_gt_1_transcription])
+        clean2_wer_summary = asr_system.calculate_wer([normalized_gt2_transcription], [clean_gt_2_transcription])
         # transcribe gt1_audio_file vs transcription_g1
         # transcribe gt1_audio_file vs transcription_g2
+        separated1_1_wer_summary = asr_system.calculate_wer([normalized_gt1_transcription], [sep_audio_1_transcription])
+        separated1_2_wer_summary = asr_system.calculate_wer([normalized_gt1_transcription], [sep_audio_2_transcription])
         # transcribe gt2_audio_file vs transcription_g1
         # transcribe gt2_audio_file vs transcription_g2
+        separated2_1_wer_summary = asr_system.calculate_wer([normalized_gt2_transcription], [sep_audio_1_transcription])
+        separated2_2_wer_summary = asr_system.calculate_wer([normalized_gt2_transcription], [sep_audio_2_transcription])
+        print(f"clean1_wer_summary:{clean1_wer_summary}")
+        print(f"clean2_wer_summary:{clean2_wer_summary}")
+        print(f"separated1_1_wer_summary:{separated1_1_wer_summary}")
+        print(f"separated1_2_wer_summary:{separated1_2_wer_summary}")
+        print(f"separated2_1_wer_summary:{separated2_1_wer_summary}")
+        print(f"separated2_2_wer_summary:{separated2_2_wer_summary}")
 
         print(f"index:{index}")
         break
