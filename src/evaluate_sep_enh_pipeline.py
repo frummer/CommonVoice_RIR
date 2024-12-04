@@ -6,6 +6,7 @@ from evaluation_utils.load_files_utils import (
     load_audio_and_resmaple,
     load_metadata,
 )
+from evaluation_utils.mms_arabic_asr import MMSArabicASR
 
 
 def main():
@@ -21,6 +22,11 @@ def main():
     # Step 1: Load metadata
     metadata = load_metadata(dataset_dir=dataset_dir)
 
+    # Step 1.5: Load MMS model.
+    # Load the model and processor
+    # Initialize the ASR system
+    asr_system = MMSArabicASR()
+    # Load your audio sample
     # Step 2: Loop over each entry
     for index, entry in enumerate(metadata):
         # Step 3:
@@ -65,9 +71,15 @@ def main():
 
         # Step 3.2 transcribe all audios:
         # transcribe gt1
+        # Perform transcription
+        gt1_transcription = asr_system.transcribe(gt1_audio, 16000)
         # transcribe gt2
-        # transcribe gt1_audio_file
-        # transcribe gt2_audio_file
+        gt2_transcription = asr_system.transcribe(gt2_audio, 16000)
+
+        # transcribe audio1_file
+        gt1_transcription = asr_system.transcribe(separated_audio_file_1, 16000)
+        # transcribe audio2_file
+        gt2_transcription = asr_system.transcribe(separated_audio_file_2, 16000)
 
         # Step 3.3 calculate WER:
         # transcribe gt1 vs transcription_g1

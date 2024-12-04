@@ -1,5 +1,5 @@
 {
-    "target_sample_rate":8000,
+    "target_sample_rate":16000,
     "directories": {
         "dataset_directory": "C:\\Users\\arifr\\dataset_and_output_files\\overlapped_samples\\02_12_2024_23_17_09_9_-9_12_-3_-3_-9",
         "separatd_audios_directory": "C:\\Users\\arifr\\dataset_and_output_files\\separated_samples"
