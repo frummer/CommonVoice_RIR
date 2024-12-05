@@ -73,10 +73,10 @@ def main():
         # transcribe gt1
         print(f"gt1_transcription:{gt1_transcription}")
         print(f"gt2_transcription:{gt2_transcription}")
-        normalized_gt1_transcription = asr_system.normalize([gt1_transcription])
-        normalized_gt2_transcription = asr_system.normalize([gt2_transcription])
-        print(f"normalized_gt1_transcription:{normalized_gt1_transcription}")
-        print(f"normalized_gt2_transcription:{normalized_gt2_transcription}")
+        # normalized_gt1_transcription = asr_system.normalize([gt1_transcription])
+        # normalized_gt2_transcription = asr_system.normalize([gt2_transcription])
+        # print(f"normalized_gt1_transcription:{normalized_gt1_transcription}")
+        # print(f"normalized_gt2_transcription:{normalized_gt2_transcription}")
 
         # Perform transcription
         clean_gt_1_transcription = asr_system.transcribe(gt1_audio, 16000)
@@ -94,29 +94,34 @@ def main():
         # Step 3.3 calculate WER:
         # transcribe gt1 vs transcription_g1
         # transcribe gt2 vs transcription_g2
-        clean1_wer_summary = asr_system.calculate_wer([normalized_gt1_transcription], [clean_gt_1_transcription])
-        clean2_wer_summary = asr_system.calculate_wer([normalized_gt2_transcription], [clean_gt_2_transcription])
+        # clean1_wer_summary = asr_system.calculate_wer([normalized_gt1_transcription], [clean_gt_1_transcription])
+        # clean2_wer_summary = asr_system.calculate_wer([normalized_gt2_transcription], [clean_gt_2_transcription])
         jiwer_clean1_wer, jiwer_clean1_cer = asr_system.jiwer_evaluation(gt1_transcription, clean_gt_1_transcription)
         jiwer_clean2_wer, jiwer_clean2_cer = asr_system.jiwer_evaluation(gt2_transcription, clean_gt_2_transcription)
 
         # transcribe gt1_audio_file vs transcription_g1
         # transcribe gt1_audio_file vs transcription_g2
-        separated1_1_wer_summary = asr_system.calculate_wer([normalized_gt1_transcription], [sep_audio_1_transcription])
-        separated1_2_wer_summary = asr_system.calculate_wer([normalized_gt1_transcription], [sep_audio_2_transcription])
+        separated1_1_wer, separated1_1_cer = asr_system.jiwer_evaluation(gt1_transcription, sep_audio_1_transcription)
+        separated1_2_wer, separated1_2_cer = asr_system.jiwer_evaluation(gt2_transcription, sep_audio_2_transcription)
         # transcribe gt2_audio_file vs transcription_g1
         # transcribe gt2_audio_file vs transcription_g2
-        separated2_1_wer_summary = asr_system.calculate_wer([normalized_gt2_transcription], [sep_audio_1_transcription])
-        separated2_2_wer_summary = asr_system.calculate_wer([normalized_gt2_transcription], [sep_audio_2_transcription])
-        print(f"clean1_wer_summary:{clean1_wer_summary}")
-        print(f"clean2_wer_summary:{clean2_wer_summary}")
+        separated2_1_wer, separated2_1_cer = asr_system.jiwer_evaluation(gt1_transcription, sep_audio_2_transcription)
+        separated2_2_wer, separated2_2_cer = asr_system.jiwer_evaluation(gt2_transcription, sep_audio_1_transcription)
+
         print(f"jiwer_clean1_wer:{jiwer_clean1_wer}")
         print(f"jiwer_clean1_cer:{jiwer_clean1_cer}")
         print(f"jiwer_clean2_wer:{jiwer_clean2_wer}")
         print(f"jiwer_clean2_cer:{jiwer_clean2_cer}")
-        print(f"separated1_1_wer_summary:{separated1_1_wer_summary}")
-        print(f"separated1_2_wer_summary:{separated1_2_wer_summary}")
-        print(f"separated2_1_wer_summary:{separated2_1_wer_summary}")
-        print(f"separated2_2_wer_summary:{separated2_2_wer_summary}")
+        
+        print(f"separated1_1_wer:{separated1_1_wer}")
+        print(f"separated1_1_cer:{separated1_1_cer}")
+        print(f"separated1_2_wer:{separated1_2_wer}")
+        print(f"separated1_2_cer:{separated1_2_cer}")
+        
+        print(f"separated2_1_wer:{separated2_1_wer}")
+        print(f"separated2_1_cer:{separated2_1_cer}")
+        print(f"separated2_2_wer:{separated2_2_wer}")
+        print(f"separated2_2_cer:{separated2_2_cer}")
 
         print(f"index:{index}")
         break

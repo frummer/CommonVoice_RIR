@@ -2,24 +2,24 @@ Starting mms inference script
 Loading Model...
 gt1_transcription:أبا نزار تفسد القوم النعم
 gt2_transcription:الكلام فضة ، لكن الصمت ذهب.
-normalized_gt1_transcription:['أبا نزار تفسد القوم النعم']
-normalized_gt2_transcription:['الكلام فضة ، لكن الصمت ذهب']
 Performing inference...
 Performing inference...
 clean_gt_1_transcription:أبانر تفسد القوم النعم
 clean_gt_2_transcription:الكلام فتبة لكن الصمص ذهب
 Performing inference...
 Performing inference...
-sep_audio_1_transcription:حبع لفاب تسل اقوم يعمين
-sep_audio_2_transcription:فلاو سلرحلق قمصعف
-clean1_wer_summary:0.4
-clean2_wer_summary:0.5
+sep_audio_1_transcription:سباا سبسديكمم يان
+sep_audio_2_transcription:قلاو لرحلقن قمف معبق
 jiwer_clean1_wer:0.4
 jiwer_clean1_cer:0.12
 jiwer_clean2_wer:0.4
 jiwer_clean2_cer:0.16
-separated1_1_wer_summary:1.0
-separated1_2_wer_summary:1.0
-separated2_1_wer_summary:1.0
-separated2_2_wer_summary:1.0
+separated1_1_wer:1.0
+separated1_1_cer:0.64
+separated1_2_wer:1.0
+separated1_2_cer:0.68
+separated2_1_wer:1.0
+separated2_1_cer:0.8
+separated2_2_wer:1.0
+separated2_2_cer:0.8
 index:0
