@@ -7,6 +7,9 @@
 import json
 import os
 
+from pesq import pesq
+
+from evaluation_utils import additional_metrics_utils
 from evaluation_utils.load_files_utils import (
     load_and_validate_config,
     load_audio_and_resmaple,
@@ -65,6 +68,16 @@ def main():
         separated_audio_file_2, _resampled4 = load_audio_and_resmaple(
             audio_path=separated_file_2_path, target_sample_rate=target_sample_rate
         )
+        print("here")
+        print(f"len(separated_audio_file_2):{len(separated_audio_file_2)}")
+        print(f"len(separated_audio_file_1):{len(separated_audio_file_1)}")
+        print(f"len(gt2_audio):{len(gt2_audio)}")
+        print(f"len(gt1_audio):{len(gt1_audio)}")
+
+        # n1_1 = separated_audio_file_2 - gt2_audio
+        # n1_2 = separated_audio_file_1 - gt1_audio
+        # n2_1 = separated_audio_file_1 - gt2_audio
+        # n2_2 = separated_audio_file_2 - gt1_audio
         print("here")
 
 

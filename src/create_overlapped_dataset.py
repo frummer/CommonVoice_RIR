@@ -1,6 +1,7 @@
 import json
 import os
 import random
+import time
 from datetime import datetime
 from typing import Dict
 from uuid import uuid4
@@ -9,9 +10,110 @@ import librosa
 import numpy as np
 import scipy.signal
 import soundfile as sf
-from datasets import load_dataset, load_from_disk
+from datasets import Dataset, load_dataset, load_from_disk
 
 from utils.opus_codec import encode_decode_opus
+
+
+def preprocess_dataset(
+    dataset,
+    long_length_overlapped_samples_amount: int,
+    short_length_overlapped_samples_amount: int,
+    mixed_length_overlapped_samples_amount: int,
+    long_audio_threshold: int,
+    short_audio_threshold: int,
+):
+    if mixed_length_overlapped_samples_amount % 2 != 0:
+        mixed_length_overlapped_samples_amount += 1
+    start_time = time.time()
+    min_length_dataset = dataset.filter(
+        filter_long_audio, fn_kwargs={"min_duration": long_audio_threshold}
+    )
+    subset_min_length_dataset = min_length_dataset.select(
+        range(
+            2 * long_length_overlapped_samples_amount
+            + mixed_length_overlapped_samples_amount
+        )
+    )
+    range_dataset = dataset.filter(
+        filter_duration_range,
+        fn_kwargs={
+            "min_duration": short_audio_threshold,
+            "max_duration": long_audio_threshold,
+        },
+    )
+    subset_range_length_dataset = range_dataset.select(
+        range(
+            2 * short_length_overlapped_samples_amount
+            + mixed_length_overlapped_samples_amount
+        )
+    )
+    # ----------------------
+    # Split Each Subset into First Half + Remainder
+    # ----------------------
+
+    lenA = len(subset_min_length_dataset)
+    lenB = len(subset_range_length_dataset)
+
+    halfA = lenA // 2
+    halfB = lenB // 2
+
+    subsetA_half = subset_min_length_dataset.select(range(halfA))
+    subsetA_remainder = subset_min_length_dataset.select(range(halfA, lenA))
+
+    subsetB_half = subset_range_length_dataset.select(range(halfB))
+    subsetB_remainder = subset_range_length_dataset.select(range(halfB, lenB))
+
+    print("Subset A half:", len(subsetA_half), " | remainder:", len(subsetA_remainder))
+    print("Subset B half:", len(subsetB_half), " | remainder:", len(subsetB_remainder))
+
+    # ----------------------
+    # 4) Build Final Dataset in the Required Order
+    # ----------------------
+    #
+    # Order:
+    #   (1) All from 'subsetA_half',
+    #   (2) All from 'subsetB_half',
+    #   (3) Interleave the remainders: [A_rem[0], B_rem[0], A_rem[1], B_rem[1], ...],
+    #       plus any leftover if one remainder is larger than the other.
+
+    final_list = []
+
+    # Part 1: Append the first half of A
+    for i in range(len(subsetA_half)):
+        final_list.append(subsetA_half[i])
+
+    # Part 2: Append the first half of B
+    for i in range(len(subsetB_half)):
+        final_list.append(subsetB_half[i])
+
+    # Part 3: Interleave the remainders
+    n = min(len(subsetA_remainder), len(subsetB_remainder))
+    for i in range(n):
+        final_list.append(subsetA_remainder[i])
+        final_list.append(subsetB_remainder[i])
+
+    # Convert the final list of dicts to a Hugging Face Dataset
+    final_dataset = Dataset.from_list(final_list)
+
+    print(
+        f"Finished preprocessings data. took: {round(time.time()-start_time,2)} seconds"
+    )
+
+    return final_dataset
+
+
+def filter_duration_range(example, min_duration=5.0, max_duration=10.0):
+    audio_array = example["audio"]["array"]
+    sr = example["audio"]["sampling_rate"]
+    duration_sec = len(audio_array) / sr
+    return (duration_sec >= min_duration) and (duration_sec <= max_duration)
+
+
+def filter_long_audio(example, min_duration=10.0):
+    """Filters audio files longer than min_duration seconds."""
+    duration = len(example["audio"]["array"]) / example["audio"]["sampling_rate"]
+    return duration > min_duration
 
 
 def normalize_audio(audio):
@@ -51,15 +153,15 @@ def add_noise_to_match_snr(audio, snr_db: int):
     # Calculate the desired noise power to achieve the given SNR
     snr_linear = 10 ** (snr_db / 10)
     noise_power = signal_power / snr_linear
-
+    noise_amplitude = np.sqrt(noise_power)
     # Generate white Gaussian noise with the calculated power
-    noise = np.sqrt(noise_power) * np.random.normal(0, 1, len(audio))
+    noise = noise_amplitude * np.random.normal(0, 1, len(audio))
 
     # Add noise to the original audio
     noisy_audio = audio + noise
     noisy_audio = normalize_audio(noisy_audio)
     # return noisy audio and also linear snr for metadata saving
-    return noisy_audio, snr_linear
+    return noisy_audio, snr_linear, noise_amplitude
 
 
 def load_random_wav(directory: str, target_sample_rate: int):
@@ -184,7 +286,9 @@ def mix_audio(
 
     # Make audios noisy
     snr_db = np.random.uniform(min_noise_desired_snr, max_noise_desired_snr)
-    noisy_ff_mixed_audio, snr_linear = add_noise_to_match_snr(ff_mixed_audio, snr_db)
+    noisy_ff_mixed_audio, snr_linear, noise_amplitude = add_noise_to_match_snr(
+        ff_mixed_audio, snr_db
+    )
 
     # Save noisy far-field audio
     noisy_ff_mixed_audio_file_path = os.path.join(
@@ -212,7 +316,8 @@ def mix_audio(
     music_linear_scale_factor = calc_scale_factor(
         audio1=y1, audio2=y2, sns_db_scale=music_scale_factor_DB
     )
-
+    if music_linear_scale_factor > 1:
+        music_linear_scale_factor = np.random.uniform(0.4, 0.75)
     noisy_ff_with_music_mixed_audio = add_music_to_mixed_file(
         music=additional_music_wav,
         wav_file=noisy_ff_mixed_audio,
@@ -249,6 +354,7 @@ def mix_audio(
         "length_seconds": len(ff_mixed_audio) / target_sample_rate,
         "added_noise_snr_db": round(snr_db, 3),
         "added_noise_snr_linear": round(float(snr_linear), 3),
+        "noise_amplitude": round(float(noise_amplitude), 3),
         "music_2_audio_SIS_scale_db": round(music_scale_factor_DB, 3),
         "music_2_audio_SIS_scale_linear": round(float(music_linear_scale_factor), 3),
         "additional_music": addition_music_str,
@@ -297,7 +403,7 @@ def process_common_voice(
 
     # Shuffle the audio files and their corresponding transcriptions
     data = list(zip(audio_files, transcriptions))
-    random.shuffle(data)
+    # random.shuffle(data)
 
     # Create overlapping pairs (non-redundant)
     for i in range(0, desired_mixtures_amount * 2 - 1, 2):
@@ -331,7 +437,7 @@ def process_common_voice(
 if __name__ == "__main__":
     # load config
     config_path = os.getenv(
-        "CONFIG_PATH", "./src/create_overlapped_dataset_config.json"
+        "CONFIG_PATH", ".\\src\\create_overlapped_dataset_config.json"
     )  # Fallback to a default
     with open(config_path, "r") as f:
         config = json.load(f)
@@ -344,9 +450,18 @@ if __name__ == "__main__":
     min_music_ssr = config["signal_to_signal_ratios"]["min_music_ssr"]
     # load dataset
     dataset = load_dataset("mozilla-foundation/common_voice_12_0","ar",split="test",trust_remote_code=True)
+    dataset = preprocess_dataset(
+        dataset,
+        long_length_overlapped_samples_amount=config["long_length_overlapped_samples_amount"],
+        short_length_overlapped_samples_amount=config["short_length_overlapped_samples_amount"],
+        mixed_length_overlapped_samples_amount=config["mixed_length_overlapped_samples_amount"],
+        long_audio_threshold=config["long_audio_threshold"],
+        short_audio_threshold=config["short_audio_threshold"])
+
     # fmt: on
     # Directories
     # Get the current date and time
+
     current_datetime = datetime.now()
 
     # Format the date and time with underscores
@@ -371,7 +486,7 @@ if __name__ == "__main__":
         dataset=dataset,
         output_dir=output_directory,
         metadata_file_path=metadata_file_path,
-        desired_mixtures_amount=config["desired_mixtures_amount"],
+        desired_mixtures_amount=int(len(dataset) / 2),
         target_sample_rate=config["target_sample_rate"],
         max_noise_desired_snr=max_noise_desired_snr,
         min_noise_desired_snr=min_noise_desired_snr,
