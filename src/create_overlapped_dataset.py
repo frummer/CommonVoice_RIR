@@ -180,7 +180,7 @@ def load_random_wav(directory: str, target_sample_rate: int):
 def apply_rir_to_audio(audio, rir):
     """Convolve the audio with the RIR."""
     # convolved_audio = scipy.signal.convolve(audio, rir, mode="full")
-    convolved_audio = scipy.signal.fftconvolve(audio, rir, mode="valid")
+    convolved_audio = scipy.signal.fftconvolve(audio, rir, mode="full")
     return convolved_audio
 
 
