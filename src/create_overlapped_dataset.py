@@ -194,7 +194,7 @@ def calc_scale_factor(audio1, audio2, sns_db_scale: int):
     snr_linear = 10 ** (sns_db_scale / 10)
     # snr_linear = power(y1)/(a^2*power(y2))
     a = np.sqrt(signal_power_audio1 / (signal_power_audio2 * snr_linear))
-    return a
+    return a, signal_power_audio1, signal_power_audio2, snr_linear
 
 
 def mix_audio(
@@ -261,7 +261,7 @@ def mix_audio(
     scale_factor_DB = np.random.uniform(
         min_conversation_desired_ssr, max_conversation_desired_ssr
     )
-    linear_scale_factor = calc_scale_factor(
+    linear_scale_factor, _, _, _ = calc_scale_factor(
         audio1=ff_audio1, audio2=ff_audio2, sns_db_scale=scale_factor_DB
     )
 
@@ -312,16 +312,23 @@ def mix_audio(
         directory=music_directory, target_sample_rate=target_sample_rate
     )
     # Sample scale factor between audios
-    music_scale_factor_DB = np.random.uniform(min_music_ssr, max_music_ssr)
-    music_linear_scale_factor = calc_scale_factor(
-        audio1=y1, audio2=y2, sns_db_scale=music_scale_factor_DB
+    mix2music_snr_DB = np.random.uniform(min_music_ssr, max_music_ssr)
+    (
+        music_linear_mult_factor,
+        mixture_power_before_music,
+        music_signal_power,
+        mix2music_snr_linear,
+    ) = calc_scale_factor(
+        audio1=noisy_ff_mixed_audio,
+        audio2=additional_music_wav,
+        sns_db_scale=mix2music_snr_DB,
     )
-    if music_linear_scale_factor > 1:
-        music_linear_scale_factor = np.random.uniform(0.4, 0.75)
+    # if music_linear_mult_factor > 1:
+    #   music_linear_mult_factor = np.random.uniform(0.4, 0.75)
     noisy_ff_with_music_mixed_audio = add_music_to_mixed_file(
         music=additional_music_wav,
         wav_file=noisy_ff_mixed_audio,
-        music_scale=music_linear_scale_factor,
+        music_scale=music_linear_mult_factor,
     )
 
     # save far-field mix with noise and overlapped music
@@ -355,8 +362,11 @@ def mix_audio(
         "added_noise_snr_db": round(snr_db, 3),
         "added_noise_snr_linear": round(float(snr_linear), 3),
         "noise_amplitude": round(float(noise_amplitude), 3),
-        "music_2_audio_SIS_scale_db": round(music_scale_factor_DB, 3),
-        "music_2_audio_SIS_scale_linear": round(float(music_linear_scale_factor), 3),
+        "mix2music_snr_DB": round(mix2music_snr_DB, 3),
+        "mix2music_snr_linear": round(float(mix2music_snr_linear), 3),
+        "mixture_power_before_music": round(float(mixture_power_before_music), 7),
+        "music_signal_power": round(float(music_signal_power), 7),
+        "music_linear_mult_factor": round(float(music_linear_mult_factor), 3),
         "additional_music": addition_music_str,
         "original_files": [
             {

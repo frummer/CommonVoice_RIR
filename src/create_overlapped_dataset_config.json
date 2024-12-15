@@ -10,8 +10,8 @@
         "min_noise_desired_snr": 7,
         "max_conversation_desired_ssr": 7,
         "min_conversation_desired_ssr": -5,
-        "max_music_ssr": 4,
-        "min_music_ssr": 1
+        "max_music_ssr": 10,
+        "min_music_ssr": 12
     },
     "opus_codec":{"apply_opus":true,"bitrate":"16k"},
     "directories": {
