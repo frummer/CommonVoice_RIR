@@ -1,26 +1,30 @@
 [
     {
-        "id": "e8d6b615-f62c-4974-ba0f-4b7fc6804577",
-        "length_seconds": 3.970875,
-        "added_noise_snr_db": 11.983,
-        "added_noise_snr_linear": 15.786,
-        "music_2_audio_SIS_scale_db": -4.942,
-        "music_2_audio_SIS_scale_linear": 2.889,
-        "additional_music": "noise-free-sound-0675.wav",
+        "id": "4bf1f19b-bbfe-4b51-909e-3e2c8420e631",
+        "length_seconds": 5.769,
+        "added_noise_snr_db": 9.688,
+        "added_noise_snr_linear": 9.307,
+        "noise_amplitude": 0.041,
+        "mix2music_snr_DB": 11.56,
+        "mix2music_snr_linear": 14.321,
+        "mixture_power_before_music": 0.0174059,
+        "music_signal_power": 0.1011646,
+        "music_linear_mult_factor": 0.11,
+        "additional_music": "noise-free-sound-0481.wav",
         "original_files": [
             {
-                "file": "common_voice_ar_24597105.mp3",
-                "original_length": 4.14,
+                "file": "common_voice_ar_22770267.mp3",
+                "original_length": 5.448,
                 "padding_seconds": 0,
-                "transcription": "أبا نزار تفسد القوم النعم"
+                "transcription": "لا يقولون بعد الآباء اكلوا حصرما واسنان الابناء ضرست."
             },
             {
-                "file": "common_voice_ar_23395303.mp3",
-                "original_length": 3.744,
-                "padding_seconds": 0.396,
-                "transcription": "الكلام فضة ، لكن الصمت ذهب.",
-                "audios_SIS_scale_db": 6.863,
-                "audios_SIS_scale_linear": 0.712
+                "file": "common_voice_ar_24206041.mp3",
+                "original_length": 5.148,
+                "padding_seconds": 0.3,
+                "transcription": "أرسل سامي رسائل حبّ لليلى.",
+                "audios_SIS_scale_db": -0.632,
+                "audios_SIS_scale_linear": 2.759
             }
         ]
     }
