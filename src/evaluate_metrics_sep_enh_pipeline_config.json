@@ -1,7 +1,7 @@
 {
     "target_sample_rate":8000,
     "directories": {
-        "dataset_directory": "C:\\Users\\arifr\\git\\CommonVoice_RIR\\dataset_and_output_files\\overlapped_samples\\02_12_2024_23_17_09_9_-9_12_-3_-3_-9",
+        "dataset_directory": "C:\\Users\\arifr\\git\\CommonVoice_RIR\\dataset_and_output_files\\overlapped_samples",
         "separatd_audios_directory": "C:\\Users\\arifr\\git\\CommonVoice_RIR\\dataset_and_output_files\\separated_samples"
     }
 }
