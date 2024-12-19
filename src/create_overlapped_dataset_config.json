@@ -1,19 +1,23 @@
 {
-    "desired_mixtures_amount": 7,
+    "long_audio_threshold": 10,
+    "short_audio_threshold":5,
+    "long_length_overlapped_samples_amount": 10,
+    "short_length_overlapped_samples_amount": 10,
+    "mixed_length_overlapped_samples_amount": 10,
     "target_sample_rate": 8000,
     "signal_to_signal_ratios": {
-        "max_noise_desired_snr": 12,
-        "min_noise_desired_snr": -3,
-        "max_conversation_desired_ssr": 9,
-        "min_conversation_desired_ssr": -9,
-        "max_music_ssr": -3,
-        "min_music_ssr": -9
+        "max_noise_desired_snr": 10,
+        "min_noise_desired_snr": 7,
+        "max_conversation_desired_ssr": 7,
+        "min_conversation_desired_ssr": -5,
+        "max_music_ssr": 10,
+        "min_music_ssr": 12
     },
-    "opus_codec":{"apply_opus":true,"bitrate":"64k"},
+    "opus_codec":{"apply_opus":true,"bitrate":"16k"},
     "directories": {
         "main_directory": "./overlapped_samples",
-        "rir_directory": "./MIT_RIR",
-        "music_directory": "./free_sound"
+        "rir_directory": "C:\\Users\\arifr\\SS_Dataset_preparation\\MIT_RIR",
+        "music_directory": "C:\\Users\\arifr\\SS_Dataset_preparation\\free_sound"
     }
 }
 
