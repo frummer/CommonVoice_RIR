@@ -1,6 +1,6 @@
 {
-    "long_audio_threshold": 10,
-    "short_audio_threshold":5,
+    "long_audio_threshold": 7.5,
+    "short_audio_threshold":2,
     "long_length_overlapped_samples_amount": 10,
     "short_length_overlapped_samples_amount": 10,
     "mixed_length_overlapped_samples_amount": 10,
@@ -18,6 +18,8 @@
         "main_directory": "./overlapped_samples",
         "rir_directory": "C:\\Users\\arifr\\SS_Dataset_preparation\\MIT_RIR",
         "music_directory": "C:\\Users\\arifr\\SS_Dataset_preparation\\free_sound"
-    }
+    },
+    "dataset_split":"train",
+    "dataset_language":"ar"
 }
 
