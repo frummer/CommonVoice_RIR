@@ -29,6 +29,7 @@ def preprocess_dataset(
     min_length_dataset = dataset.filter(
         filter_long_audio, fn_kwargs={"min_duration": long_audio_threshold}
     )
+    min_length_dataset_length = len(min_length_dataset)
     subset_min_length_dataset = min_length_dataset.select(
         range(
             2 * long_length_overlapped_samples_amount
@@ -97,7 +98,7 @@ def preprocess_dataset(
     final_dataset = Dataset.from_list(final_list)
 
     print(
-        f"Finished preprocessings data. took: {round(time.time()-start_time,2)} seconds"
+        f"Finished pre-processings data. took: {round(time.time()-start_time,2)} seconds"
     )
 
     return final_dataset
@@ -261,9 +262,28 @@ def mix_audio(
     scale_factor_DB = np.random.uniform(
         min_conversation_desired_ssr, max_conversation_desired_ssr
     )
-    linear_scale_factor, _, _, _ = calc_scale_factor(
+    (
+        linear_mult_factor,
+        ff_signal_power_audio1,
+        ff_signal_power_audio2,
+        linear_scale_factor,
+    ) = calc_scale_factor(
         audio1=ff_audio1, audio2=ff_audio2, sns_db_scale=scale_factor_DB
     )
+    # save far field audios + save scales far field audio
+    # Save original files
+    ff_original_file1 = os.path.join(
+        subdirectory_path, "ff_" + os.path.basename(file1_path)
+    )
+    ff_original_file2 = os.path.join(
+        subdirectory_path, "ff_" + os.path.basename(file2_path)
+    )
+    ff_scaled_file2 = os.path.join(
+        subdirectory_path, "ff_scaled_" + os.path.basename(file2_path)
+    )
+    sf.write(ff_original_file1, ff_audio1, target_sample_rate)
+    sf.write(ff_original_file2, ff_audio2, target_sample_rate)
+    sf.write(ff_scaled_file2, linear_scale_factor * ff_audio2, target_sample_rate)
 
     # Mix the audio
     ff_mixed_audio = ff_audio1 + linear_scale_factor * ff_audio2
@@ -374,14 +394,19 @@ def mix_audio(
                 "original_length": length1,
                 "padding_seconds": padding1,
                 "transcription": transcription1,
+                "ff_signal_power_audio1": round(float(ff_signal_power_audio1), 7),
             },
             {
                 "file": os.path.basename(file2_path),
                 "original_length": length2,
                 "padding_seconds": padding2,
                 "transcription": transcription2,
+                "ff_signal_power_audio2_before_scale": round(
+                    float(ff_signal_power_audio2), 7
+                ),
                 "audios_SIS_scale_db": round(scale_factor_DB, 3),
                 "audios_SIS_scale_linear": round(float(linear_scale_factor), 3),
+                "audios_SIS_linear_mult_factor": round(float(linear_mult_factor), 3),
             },
         ],
     }
@@ -447,7 +472,7 @@ def process_common_voice(
 if __name__ == "__main__":
     # load config
     config_path = os.getenv(
-        "CONFIG_PATH", ".\\src\\create_overlapped_dataset_config.json"
+        "CONFIG_PATH", ".\\src\\configs\\create_overlapped_test_set_config.json"
     )  # Fallback to a default
     with open(config_path, "r") as f:
         config = json.load(f)
@@ -459,7 +484,7 @@ if __name__ == "__main__":
     max_music_ssr = config["signal_to_signal_ratios"]["max_music_ssr"]
     min_music_ssr = config["signal_to_signal_ratios"]["min_music_ssr"]
     # load dataset
-    dataset = load_dataset("mozilla-foundation/common_voice_12_0","ar",split="test",trust_remote_code=True)
+    dataset = load_dataset("mozilla-foundation/common_voice_12_0",config["dataset_language"],split=config["dataset_split"],trust_remote_code=True)
     dataset = preprocess_dataset(
         dataset,
         long_length_overlapped_samples_amount=config["long_length_overlapped_samples_amount"],
