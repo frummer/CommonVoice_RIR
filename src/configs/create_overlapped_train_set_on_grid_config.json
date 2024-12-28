@@ -1,0 +1,25 @@
+{
+    "long_audio_threshold": 7.5,
+    "short_audio_threshold":2,
+    "long_length_overlapped_samples_amount": 10,
+    "short_length_overlapped_samples_amount": 10,
+    "mixed_length_overlapped_samples_amount": 10,
+    "target_sample_rate": 8000,
+    "signal_to_signal_ratios": {
+        "max_noise_desired_snr": 10,
+        "min_noise_desired_snr": 7,
+        "max_conversation_desired_ssr": 7,
+        "min_conversation_desired_ssr": -5,
+        "max_music_ssr": 10,
+        "min_music_ssr": 12
+    },
+    "opus_codec":{"apply_opus":true,"bitrate":"16k"},
+    "directories": {
+        "main_directory": "/export/fs05/afrumme1/common_voice_overlapped_samples",
+        "rir_directory": "/export/fs05/afrumme1/mit_rir",
+        "music_directory": "/export/corpora6/musan/noise/free-sound"
+    },
+    "dataset_split":"train",
+    "dataset_language":"ar"
+}
+
