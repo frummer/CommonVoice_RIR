@@ -37,8 +37,10 @@ def main(dataset_json_path: str, output_filtered_dataset_path: str):
 
 
 if __name__ == "__main__":
-    path_to_dataset_json = "C:\\Users\\arifr\\git\\CommonVoice_RIR\\lsheavymix_cuts_train_small_snr_aug_mono_rir_fixed.jsonl"
-    path_to_filtered_dataset_json = "C:\\Users\\arifr\\git\\CommonVoice_RIR\\2_spk_lsheavymix_cuts_train_small_snr_aug_mono_rir_fixed.jsonl"
+    path_to_dataset_json = (
+        "C:\\Users\\arifr\\git\\CommonVoice_RIR\\lsheavymix_cuts_train_small.jsonl"
+    )
+    path_to_filtered_dataset_json = "C:\\Users\\arifr\\git\\CommonVoice_RIR\\2_spk_lsheavymix_cuts_train_small.jsonl"
     main(
         dataset_json_path=path_to_dataset_json,
         output_filtered_dataset_path=path_to_filtered_dataset_json,

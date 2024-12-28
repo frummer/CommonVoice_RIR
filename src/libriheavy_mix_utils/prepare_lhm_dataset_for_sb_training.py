@@ -131,11 +131,9 @@ def copy_and_convert_audio_by_id_librosa(
                     if os.path.isfile(source_path):
                         # Decide the target filename
                         if rename_sources:
-                            # Retain '_padded' if used
-                            src_key = filename.split(".")[0]  # e.g., '0' or '0_padded'
-                            target_name = f"{mixture_id}_{src_key}.wav"  # e.g., '12345_0.wav' or , '12345_0_padded.wav'
+                            target_name = f"{mixture_id}.wav"  # e.g., '12345_0.wav'
                         else:
-                            target_name = f"{filename.split('.')[0]}.wav"  # '0_padded.wav' or '0.wav'
+                            target_name = f"{filename.split('.')[0]}.wav"  # ' '0.wav'
 
                         # Determine target directory based on key
                         if key == "0":
