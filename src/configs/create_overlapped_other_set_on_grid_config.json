@@ -3,7 +3,7 @@
     "short_audio_threshold":2,
     "long_length_overlapped_samples_amount": 0,
     "short_length_overlapped_samples_amount": 0,
-    "mixed_length_overlapped_samples_amount": 14000,
+    "mixed_length_overlapped_samples_amount": 18000,
     "target_sample_rate": 8000,
     "signal_to_signal_ratios": {
         "max_noise_desired_snr": 10,
@@ -19,7 +19,7 @@
         "rir_directory": "/export/fs05/afrumme1/mit_rir",
         "music_directory": "/export/corpora6/musan/noise/free-sound"
     },
-    "dataset_split":"train",
+    "dataset_split":"other",
     "dataset_language":"ar"
 }
 
