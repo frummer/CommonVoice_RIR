@@ -487,7 +487,8 @@ def process_common_voice(
 if __name__ == "__main__":
     # load config
     config_path = os.getenv(
-        "CONFIG_PATH", "/home/afrumme1/CommonVoice_RIR/src/configs/create_overlapped_train_set_config.json"
+        "CONFIG_PATH",
+        "/home/afrumme1/CommonVoice_RIR/src/configs/create_overlapped_train_set_config.json",
     )  # Fallback to a default
     with open(config_path, "r") as f:
         config = json.load(f)
