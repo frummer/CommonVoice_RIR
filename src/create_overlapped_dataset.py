@@ -230,7 +230,13 @@ def mix_audio(
     unique_id = str(uuid4())
     subdirectory_path = os.path.join(output_path, unique_id)
     os.makedirs(subdirectory_path, exist_ok=True)
-
+    # create directories for training
+    source1_path = os.path.join(output_path, "train", "source1")
+    os.makedirs(source1_path, exist_ok=True)
+    source2_path = os.path.join(output_path, "train", "source2")
+    os.makedirs(source2_path, exist_ok=True)
+    mixture_path = os.path.join(output_path, "train", "mixture")
+    os.makedirs(mixture_path, exist_ok=True)
     # Save original files
     original_file1 = os.path.join(subdirectory_path, os.path.basename(file1_path))
     original_file2 = os.path.join(subdirectory_path, os.path.basename(file2_path))
@@ -375,6 +381,15 @@ def mix_audio(
     additional_music_path = os.path.join(subdirectory_path, addition_music_str)
     sf.write(additional_music_path, additional_music_wav, target_sample_rate)
 
+    # save files to training dir
+
+    source_1_path = os.path.join(output_path, "train", "source1", f"{unique_id}.wav")
+    source_2_path = os.path.join(output_path, "train", "source2", f"{unique_id}.wav")
+    mixture_path = os.path.join(output_path, "train", "mixture", f"{unique_id}.wav")
+    sf.write(source_1_path, ff_audio1, target_sample_rate)
+    sf.write(source_2_path, ff_audio2, target_sample_rate)
+    sf.write(mixture_path, noisy_ff_with_music_mixed_audio, target_sample_rate)
+
     # Save metadata
     metadata_entry = {
         "id": unique_id,
@@ -472,7 +487,8 @@ def process_common_voice(
 if __name__ == "__main__":
     # load config
     config_path = os.getenv(
-        "CONFIG_PATH", ".\\src\\configs\\create_overlapped_test_set_config.json"
+        "CONFIG_PATH",
+        "/home/afrumme1/CommonVoice_RIR/src/configs/create_overlapped_other_set_on_grid_config.json",
     )  # Fallback to a default
     with open(config_path, "r") as f:
         config = json.load(f)
@@ -485,13 +501,13 @@ if __name__ == "__main__":
     min_music_ssr = config["signal_to_signal_ratios"]["min_music_ssr"]
     # load dataset
     dataset = load_dataset("mozilla-foundation/common_voice_12_0",config["dataset_language"],split=config["dataset_split"],trust_remote_code=True)
-    dataset = preprocess_dataset(
-        dataset,
-        long_length_overlapped_samples_amount=config["long_length_overlapped_samples_amount"],
-        short_length_overlapped_samples_amount=config["short_length_overlapped_samples_amount"],
-        mixed_length_overlapped_samples_amount=config["mixed_length_overlapped_samples_amount"],
-        long_audio_threshold=config["long_audio_threshold"],
-        short_audio_threshold=config["short_audio_threshold"])
+    # dataset = preprocess_dataset(
+    #    dataset,
+    #    long_length_overlapped_samples_amount=config["long_length_overlapped_samples_amount"],
+    #    short_length_overlapped_samples_amount=config["short_length_overlapped_samples_amount"],
+    #    mixed_length_overlapped_samples_amount=config["mixed_length_overlapped_samples_amount"],
+    #    long_audio_threshold=config["long_audio_threshold"],
+    #    short_audio_threshold=config["short_audio_threshold"])
 
     # fmt: on
     # Directories

@@ -1,0 +1,7 @@
+{
+    "dir1":"C:\\Users\\arifr\\git\\CommonVoice_RIR\\overlapped_samples\\29_12_2024_12_27_54_7_-5_10_7_10_12\\train",
+    "dir2":"C:\\Users\\arifr\\git\\CommonVoice_RIR\\overlapped_samples\\29_12_2024_12_28_41_7_-5_10_7_10_12\\train",
+    "combined":"C:\\Users\\arifr\\git\\CommonVoice_RIR\\overlapped_samples\\combined_train",
+    "holdout":"C:\\Users\\arifr\\git\\CommonVoice_RIR\\overlapped_samples\\combined_val",
+    "fraction" :0.2
+}
