@@ -488,7 +488,7 @@ if __name__ == "__main__":
     # load config
     config_path = os.getenv(
         "CONFIG_PATH",
-        "/home/afrumme1/CommonVoice_RIR/src/configs/create_overlapped_train_set_config.json",
+        "/home/afrumme1/CommonVoice_RIR/src/configs/create_overlapped_other_set_on_grid_config.json",
     )  # Fallback to a default
     with open(config_path, "r") as f:
         config = json.load(f)
@@ -501,13 +501,13 @@ if __name__ == "__main__":
     min_music_ssr = config["signal_to_signal_ratios"]["min_music_ssr"]
     # load dataset
     dataset = load_dataset("mozilla-foundation/common_voice_12_0",config["dataset_language"],split=config["dataset_split"],trust_remote_code=True)
-    dataset = preprocess_dataset(
-        dataset,
-        long_length_overlapped_samples_amount=config["long_length_overlapped_samples_amount"],
-        short_length_overlapped_samples_amount=config["short_length_overlapped_samples_amount"],
-        mixed_length_overlapped_samples_amount=config["mixed_length_overlapped_samples_amount"],
-        long_audio_threshold=config["long_audio_threshold"],
-        short_audio_threshold=config["short_audio_threshold"])
+    # dataset = preprocess_dataset(
+    #    dataset,
+    #    long_length_overlapped_samples_amount=config["long_length_overlapped_samples_amount"],
+    #    short_length_overlapped_samples_amount=config["short_length_overlapped_samples_amount"],
+    #    mixed_length_overlapped_samples_amount=config["mixed_length_overlapped_samples_amount"],
+    #    long_audio_threshold=config["long_audio_threshold"],
+    #    short_audio_threshold=config["short_audio_threshold"])
 
     # fmt: on
     # Directories
