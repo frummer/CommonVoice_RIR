@@ -1,12 +1,11 @@
+import jiwer
 import librosa
 import torch
-
 import werpy
-import jiwer
 from transformers import AutoProcessor, Wav2Vec2ForCTC
 
 
-class MMSArabicASR:
+class MMSASR:
     def __init__(
         self, model_id="facebook/mms-1b-all", target_lang="ara", sampling_rate=16000
     ):
@@ -59,7 +58,7 @@ class MMSArabicASR:
         """
         summary = werpy.wer(reference, hypothesis)
         return summary
-    
+
     @staticmethod
     def normalize(input):
         """
@@ -77,24 +76,17 @@ class MMSArabicASR:
                 jiwer.RemoveEmptyStrings(),
                 jiwer.RemoveMultipleSpaces(),
                 jiwer.Strip(),
-                jiwer.RemovePunctuation()
+                jiwer.RemovePunctuation(),
             ]
         )
 
-            # Transform reference and hypothesis
+        # Transform reference and hypothesis
         transformed_reference = transforms(reference)
         transformed_hypothesis = transforms(hypothesis)
         # Calculate WER and CER using the built-in normalization
-        wer_value = jiwer.wer(
-            transformed_reference,
-            transformed_hypothesis
-        )
-        cer_value = jiwer.cer(
-            transformed_reference,
-            transformed_hypothesis
-        )
+        wer_value = jiwer.wer(transformed_reference, transformed_hypothesis)
+        cer_value = jiwer.cer(transformed_reference, transformed_hypothesis)
         return wer_value, cer_value
-
 
 
 # Example usage
@@ -107,7 +99,7 @@ if __name__ == "__main__":
     waveform, sr = librosa.load(audio_path, sr=None)
 
     # Initialize the ASR system
-    asr_system = MMSArabicASR()
+    asr_system = MMSASR()
 
     # Perform transcription
     transcription = asr_system.transcribe(waveform, sr)
