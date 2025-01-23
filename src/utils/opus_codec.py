@@ -7,7 +7,9 @@ def encode_decode_opus(input_file_path: str, output_file_path: str, bit_rate: st
         # print("Encoding audio to Opus in memory...")
         encoded_opus, stderr = (
             ffmpeg.input(input_file_path)
-            .output("pipe:", format="opus", acodec="libopus", ab=bit_rate)
+            .output(
+                "pipe:", format="opus", acodec="libopus", ab=bit_rate
+            )  # framesize, compressionlevel #mode
             .run(capture_stdout=True, capture_stderr=True)
         )
         # print("Encoding completed.")

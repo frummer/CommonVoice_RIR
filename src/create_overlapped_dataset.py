@@ -193,6 +193,7 @@ def calc_scale_factor(audio1, audio2, sns_db_scale: int):
 
     # Calculate the desired noise power to achieve the given SNR
     snr_linear = 10 ** (sns_db_scale / 10)
+    # mixture = audio1 + a*audio2
     # snr_linear = power(y1)/(a^2*power(y2))
     a = np.sqrt(signal_power_audio1 / (signal_power_audio2 * snr_linear))
     return a, signal_power_audio1, signal_power_audio2, snr_linear
@@ -289,10 +290,10 @@ def mix_audio(
     )
     sf.write(ff_original_file1, ff_audio1, target_sample_rate)
     sf.write(ff_original_file2, ff_audio2, target_sample_rate)
-    sf.write(ff_scaled_file2, linear_scale_factor * ff_audio2, target_sample_rate)
+    sf.write(ff_scaled_file2, linear_mult_factor * ff_audio2, target_sample_rate)
 
     # Mix the audio
-    ff_mixed_audio = ff_audio1 + linear_scale_factor * ff_audio2
+    ff_mixed_audio = ff_audio1 + linear_mult_factor * ff_audio2
     ff_mixed_audio = normalize_audio(ff_mixed_audio)
 
     # Save far-field audio
