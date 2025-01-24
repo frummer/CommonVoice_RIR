@@ -72,13 +72,13 @@ class OpusBytesEncoderDecoder(BaseBytesEncoderDecoder):
 if __name__ == "__main__":
     # Configuration
     config = {
-        "bitrate": 64000,  # Example bitrate in bits per second
+        "bitrate": 6000,  # Example bitrate in bits per second
         "bit_depth": 16,  # Example bit depth
-        "sample_rate": 48000,  # Example sample rate
+        "sample_rate": 8000,  # Example sample rate
         "opus_channels_number": 1,  # Typically 1 for mono or 2 for stereo
         "opus_complexity": 10,  # Complexity level (0-10)
         "opus_enable_dtx": 0,  # Discontinuous Transmission: 1 to enable, 0 to disable
-        "opus_sample_rate_factor": 48000,  # Common Opus sample rate factor
+        "opus_sample_rate_factor": 8000,  # Common Opus sample rate factor
         "audio_dir": "/app/scaled_lufs_samples",  # Directory containing audio files to process
         "decoded_output_dir": "/app/decompressed_samples",  # Directory to save the decoded audio files
     }
