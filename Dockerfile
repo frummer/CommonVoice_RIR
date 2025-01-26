@@ -11,6 +11,8 @@ RUN pip install --upgrade pip --root-user-action=ignore
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     git \
+    libopus0 \
+    libopus-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
