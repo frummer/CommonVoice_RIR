@@ -489,7 +489,7 @@ if __name__ == "__main__":
     # load config
     config_path = os.getenv(
         "CONFIG_PATH",
-        "/home/afrumme1/CommonVoice_RIR/src/configs/create_overlapped_other_set_on_grid_config.json",
+        "C:\\Users\\arifr\\git\\CommonVoice_RIR\\src\\configs\\create_overlapped_test_set_config.json",
     )  # Fallback to a default
     with open(config_path, "r") as f:
         config = json.load(f)
