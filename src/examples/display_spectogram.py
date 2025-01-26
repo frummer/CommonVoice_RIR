@@ -55,7 +55,7 @@ spectrogram = T.Spectrogram(
 )
 
 if __name__ == "__main__":
-    input_file = "./src/common_voice_ar_19065197_decoded.wav"
+    input_file = "C:\\Users\\arifr\\git\\CommonVoice_RIR\\filtered_samples\\00001_filtered_audio.wav"
     waveform, sample_rate = torchaudio.load(input_file)
 
     # Load the audio file with librosa
