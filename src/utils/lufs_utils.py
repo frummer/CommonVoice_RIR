@@ -31,6 +31,23 @@ def lufs_norm(data, sr, norm=-6):
     return norm_data, gain
 
 
+def calculate_lufs(audio, sr):
+    """
+    Calculate the LUFS (integrated loudness) of an audio signal.
+
+    Args:
+        audio (numpy.ndarray): Input audio signal.
+        sr (int): Sample rate of the audio.
+
+    Returns:
+        float: Integrated loudness in LUFS.
+    """
+    block_size = 0.4 if len(audio) / sr >= 0.4 else len(audio) / sr
+    meter = pyln.Meter(rate=sr, block_size=block_size)
+    loudness = meter.integrated_loudness(audio)
+    return loudness
+
+
 def get_lufs_norm_audio(audio, sr=16000, lufs=-6):
     """
     Normalize audio to a random LUFS value in the range [lufs-2, lufs+2].

@@ -7,11 +7,11 @@
     "target_sample_rate": 8000,
     "signal_to_signal_ratios": {
         "max_noise_desired_snr": 20,
-        "min_noise_desired_snr": 15,
-        "max_conversation_desired_ssr": 7,
-        "min_conversation_desired_ssr": -5,
-        "max_music_ssr": 25,
-        "min_music_ssr": 20
+        "min_noise_desired_snr": 10,
+        "max_conversation_desired_ssr": 8,
+        "min_conversation_desired_ssr": 4,
+        "max_music_ssr": 15,
+        "min_music_ssr": 10
     },
     "opus_codec":{"apply_opus":true,"bitrate":"16k"},
     "directories": {
@@ -22,6 +22,6 @@
     "dataset_split":"test",
     "dataset_language":"ar",
     "desired_mixtures_amount":10,
-    "normalize_lufs":true
+    "normalize_lufs":false
 }
 
