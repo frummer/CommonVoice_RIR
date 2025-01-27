@@ -12,6 +12,7 @@ import scipy.signal
 import soundfile as sf
 from datasets import Dataset, load_dataset, load_from_disk
 
+from utils.lufs_utils import get_lufs_norm_audio
 from utils.opus_codec import encode_decode_opus
 
 
@@ -123,6 +124,27 @@ def normalize_audio(audio):
     return audio
 
 
+def will_clipping_occur(audio1, audio2, scaling_factor):
+    """
+    Check if mixing two waveforms with a given scaling factor will cause clipping.
+
+    Parameters:
+    - audio1 (np.ndarray): First waveform.
+    - audio2 (np.ndarray): Second waveform.
+    - scaling_factor (float): Scaling factor applied to the second waveform.
+
+    Returns:
+    - bool: True if clipping will occur, False otherwise.
+    - float: The predicted maximum absolute value after mixing.
+    """
+    # Calculate the predicted mixed waveform without actually creating it
+    predicted_max = np.max(np.abs(audio1)) + (scaling_factor * np.max(np.abs(audio2)))
+
+    # Check if the predicted max exceeds the valid range
+    clipping_occurred = predicted_max > 1.0
+    return clipping_occurred, predicted_max
+
+
 def add_music_to_mixed_file(music, wav_file, music_scale: int):
     if len(music) > len(wav_file):
         music = music[: len(wav_file)]  # Truncate
@@ -199,6 +221,27 @@ def calc_scale_factor(audio1, audio2, sns_db_scale: int):
     return a, signal_power_audio1, signal_power_audio2, snr_linear
 
 
+def clip_audio(audio, min_val=-1.0, max_val=1.0):
+    """Clip audio samples to prevent exceeding valid range."""
+    return np.clip(audio, min_val, max_val)
+
+
+def peak_normalize(audio, target_peak=0.98):
+    """Normalize audio so that the maximum absolute amplitude equals target_peak."""
+    max_amplitude = np.max(np.abs(audio))
+    if max_amplitude > 0:  # Avoid division by zero
+        audio = (audio / max_amplitude) * target_peak
+    return audio
+
+
+def reduce_high_peaks(audio, threshold=0.9):
+    """Reduce high peaks in the audio signal."""
+    peak_amplitude = np.max(np.abs(audio))
+    if peak_amplitude > threshold:
+        audio = audio / peak_amplitude * threshold
+    return audio
+
+
 def mix_audio(
     file1_path: str,
     file2_path: str,
@@ -216,6 +259,7 @@ def mix_audio(
     rir_directory: str,
     music_directory: str,
     opus_codec: Dict[str, str | bool],
+    normalize_lufs: bool = False,
 ):
     # Load audio files
     y1, sr1 = librosa.load(file1_path, sr=None)
@@ -262,13 +306,24 @@ def mix_audio(
     rir, _ = load_random_wav(
         directory=rir_directory, target_sample_rate=target_sample_rate
     )
+    # rir = normalize_audio(rir)
     ff_audio1 = apply_rir_to_audio(y1, rir)
     ff_audio2 = apply_rir_to_audio(y2, rir)
-
+    ff_audio1 = normalize_audio(ff_audio1)
+    ff_audio2 = normalize_audio(ff_audio2)
+    if normalize_lufs:
+        ff_audio1, gain1 = get_lufs_norm_audio(
+            audio=ff_audio1.squeeze(), sr=target_sample_rate, lufs=-20
+        )
+        ff_audio2, gain2 = get_lufs_norm_audio(
+            audio=ff_audio2.squeeze(), sr=target_sample_rate, lufs=-20
+        )
+        # save lufs
     # Sample scale factor between audios
     scale_factor_DB = np.random.uniform(
         min_conversation_desired_ssr, max_conversation_desired_ssr
     )
+
     (
         linear_mult_factor,
         ff_signal_power_audio1,
@@ -277,6 +332,17 @@ def mix_audio(
     ) = calc_scale_factor(
         audio1=ff_audio1, audio2=ff_audio2, sns_db_scale=scale_factor_DB
     )
+    clipping, predicted_max = will_clipping_occur(
+        ff_audio1, ff_audio2, linear_mult_factor
+    )
+    if clipping:
+        print(f"Clipping will occur! Predicted max value: {predicted_max:.2f}")
+        # Adjust the scaling factor to prevent clipping
+        linear_mult_factor = linear_mult_factor / predicted_max
+        print(f"Scaling factor adjusted to prevent clipping: {linear_mult_factor:.2f}")
+    else:
+        print(f"No clipping expected. Predicted max value: {predicted_max:.2f}")
+
     # save far field audios + save scales far field audio
     # Save original files
     ff_original_file1 = os.path.join(
@@ -294,6 +360,7 @@ def mix_audio(
 
     # Mix the audio
     ff_mixed_audio = ff_audio1 + linear_mult_factor * ff_audio2
+    ff_mixed_audio = reduce_high_peaks(ff_mixed_audio, threshold=0.9)
     ff_mixed_audio = normalize_audio(ff_mixed_audio)
 
     # Save far-field audio
@@ -338,6 +405,16 @@ def mix_audio(
     additional_music_wav, addition_music_str = load_random_wav(
         directory=music_directory, target_sample_rate=target_sample_rate
     )
+    additional_music_wav = reduce_high_peaks(additional_music_wav)
+    additional_music_wav = normalize_audio(additional_music_wav)
+    ff_additional_music_wav = apply_rir_to_audio(additional_music_wav, rir)
+    ff_additional_music_wav = reduce_high_peaks(ff_additional_music_wav, threshold=0.8)
+    ff_additional_music_wav = normalize_audio(ff_additional_music_wav)
+    if normalize_lufs:
+        ff_additional_music_wav, music_gain2 = get_lufs_norm_audio(
+            audio=ff_additional_music_wav.squeeze(), sr=target_sample_rate, lufs=-33
+        )
+
     # Sample scale factor between audios
     mix2music_snr_DB = np.random.uniform(min_music_ssr, max_music_ssr)
     (
@@ -347,13 +424,30 @@ def mix_audio(
         mix2music_snr_linear,
     ) = calc_scale_factor(
         audio1=noisy_ff_mixed_audio,
-        audio2=additional_music_wav,
+        audio2=ff_additional_music_wav,
         sns_db_scale=mix2music_snr_DB,
     )
-    # if music_linear_mult_factor > 1:
-    #   music_linear_mult_factor = np.random.uniform(0.4, 0.75)
+    # if music_linear_mult_factor > 0.8:
+    #     print(f"setting music_linear_mult_factor to 0.8")
+    #     music_linear_mult_factor = 0.8
+    clipping, predicted_max = will_clipping_occur(
+        noisy_ff_mixed_audio, ff_additional_music_wav, music_linear_mult_factor
+    )
+    if clipping:
+        print(
+            f"Clipping will occur adding music! Predicted max value: {predicted_max:.2f}"
+        )
+        # Adjust the scaling factor to prevent clipping
+        music_linear_mult_factor = music_linear_mult_factor / predicted_max
+        print(
+            f"music - Scaling factor adjusted to prevent clipping: {music_linear_mult_factor:.2f}"
+        )
+    else:
+        print(
+            f"No clipping expected with adding music. Predicted max value: {predicted_max:.2f}"
+        )
     noisy_ff_with_music_mixed_audio = add_music_to_mixed_file(
-        music=additional_music_wav,
+        music=ff_additional_music_wav,
         wav_file=noisy_ff_mixed_audio,
         music_scale=music_linear_mult_factor,
     )
@@ -380,7 +474,12 @@ def mix_audio(
         )
     # save additional music
     additional_music_path = os.path.join(subdirectory_path, addition_music_str)
+    additional_ff_music_path = os.path.join(
+        subdirectory_path, "ff_scaled_" + addition_music_str
+    )
+
     sf.write(additional_music_path, additional_music_wav, target_sample_rate)
+    sf.write(additional_ff_music_path, ff_additional_music_wav, target_sample_rate)
 
     # save files to training dir
 
@@ -390,6 +489,9 @@ def mix_audio(
     sf.write(source_1_path, ff_audio1, target_sample_rate)
     sf.write(source_2_path, ff_audio2, target_sample_rate)
     sf.write(mixture_path, noisy_ff_with_music_mixed_audio, target_sample_rate)
+
+    print(f"finished:{unique_id}")
+    print("------------------------------------")
 
     # Save metadata
     metadata_entry = {
@@ -444,6 +546,7 @@ def process_common_voice(
     rir_directory: str,
     music_directory: str,
     opus_codec: Dict[str, str | bool],
+    normalize_lufs: bool,
 ):
     os.makedirs(output_dir, exist_ok=True)
     metadata = []
@@ -478,6 +581,7 @@ def process_common_voice(
             rir_directory=rir_directory,
             music_directory=music_directory,
             opus_codec=opus_codec,
+            normalize_lufs=normalize_lufs,
         )
 
     # Save metadata as JSON
@@ -500,8 +604,13 @@ if __name__ == "__main__":
     min_noise_desired_snr = config["signal_to_signal_ratios"]["min_noise_desired_snr"]
     max_music_ssr = config["signal_to_signal_ratios"]["max_music_ssr"]
     min_music_ssr = config["signal_to_signal_ratios"]["min_music_ssr"]
+
     # load dataset
     dataset = load_dataset("mozilla-foundation/common_voice_12_0",config["dataset_language"],split=config["dataset_split"],trust_remote_code=True)
+    if "desired_mixtures_amount" in config:
+        desired_mixtures_amount=config["desired_mixtures_amount"]
+    else:
+        desired_mixtures_amount =int(len(dataset) / 2) 
     # dataset = preprocess_dataset(
     #    dataset,
     #    long_length_overlapped_samples_amount=config["long_length_overlapped_samples_amount"],
@@ -538,7 +647,7 @@ if __name__ == "__main__":
         dataset=dataset,
         output_dir=output_directory,
         metadata_file_path=metadata_file_path,
-        desired_mixtures_amount=int(len(dataset) / 2),
+        desired_mixtures_amount=desired_mixtures_amount,
         target_sample_rate=config["target_sample_rate"],
         max_noise_desired_snr=max_noise_desired_snr,
         min_noise_desired_snr=min_noise_desired_snr,
@@ -549,4 +658,5 @@ if __name__ == "__main__":
         rir_directory=config["directories"]["rir_directory"],
         music_directory=config["directories"]["music_directory"],
         opus_codec=config["opus_codec"],
+        normalize_lufs=config["normalize_lufs"],
     )
