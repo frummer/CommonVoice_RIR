@@ -657,13 +657,6 @@ if __name__ == "__main__":
         desired_mixtures_amount=config["desired_mixtures_amount"]
     else:
         desired_mixtures_amount =int(len(dataset) / 2) 
-    # dataset = preprocess_dataset(
-    #    dataset,
-    #    long_length_overlapped_samples_amount=config["long_length_overlapped_samples_amount"],
-    #    short_length_overlapped_samples_amount=config["short_length_overlapped_samples_amount"],
-    #    mixed_length_overlapped_samples_amount=config["mixed_length_overlapped_samples_amount"],
-    #    long_audio_threshold=config["long_audio_threshold"],
-    #    short_audio_threshold=config["short_audio_threshold"])
 
     # fmt: on
     # Directories
