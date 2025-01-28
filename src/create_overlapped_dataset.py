@@ -14,6 +14,11 @@ from datasets import Dataset, load_dataset, load_from_disk
 
 from utils.lufs_utils import calculate_lufs, get_lufs_norm_audio
 from utils.opus_codec import encode_decode_opus
+from utils.opuslib_module import (
+    OpusBytesEncoderDecoder,
+    postprocess_waveform,
+    preprocess_waveform,
+)
 
 
 def preprocess_dataset(
@@ -264,6 +269,7 @@ def mix_audio(
     rir_directory: str,
     music_directory: str,
     opus_codec: Dict[str, str | bool],
+    opus_encoder: OpusBytesEncoderDecoder,
     normalize_lufs: bool = False,
 ):
     # Load audio files
@@ -294,6 +300,8 @@ def mix_audio(
     os.makedirs(source2_path, exist_ok=True)
     mixture_path = os.path.join(output_path, "train", "mixture")
     os.makedirs(mixture_path, exist_ok=True)
+    compressed_mixture_path = os.path.join(output_path, "train", "compressed_mixture")
+    os.makedirs(compressed_mixture_path, exist_ok=True)
     # Save original files
     original_file1 = os.path.join(subdirectory_path, os.path.basename(file1_path))
     original_file2 = os.path.join(subdirectory_path, os.path.basename(file2_path))
@@ -392,11 +400,48 @@ def mix_audio(
         mixed_audio_ff_compressed_file = os.path.join(
             subdirectory_path, f"ff_{unique_id}_opus.wav"
         )
-        encode_decode_opus(
-            input_file_path=mixed_audio_ff_file,
-            output_file_path=mixed_audio_ff_compressed_file,
-            bit_rate=opus_codec["bitrate"],
+    pcm_frames = preprocess_waveform(
+        ff_mixed_audio,
+        target_sample_rate,
+        opus_codec["opus_config"]["sample_rate"],
+        opus_codec["opus_config"],
+    )
+    if not pcm_frames or len(pcm_frames) == 0:
+        raise ValueError("PCM frames are empty or invalid.")
+
+    decoded_pcm = []
+    frame_size = (opus_codec["opus_config"]["sample_rate"] // 1000) * opus_codec[
+        "opus_config"
+    ]["frame_duration_ms"]
+
+    for chunk in pcm_frames:
+        # Encode and decode each frame
+        encoded_data = opus_encoder.encode(input_data=chunk, frame_size=frame_size)
+        decoded_frame = opus_encoder.decode(
+            input_data=encoded_data, frame_size=frame_size
         )
+        decoded_pcm.append(decoded_frame)
+
+    # Combine and postprocess the decoded audio
+    decoded_pcm = b"".join(decoded_pcm)
+    decoded_mixed_audio_ff_file = postprocess_waveform(
+        decoded_pcm, opus_codec["opus_config"]["opus_channels_number"]
+    )
+    print(f"Decoded PCM length: {len(decoded_pcm)}")
+
+    # Postprocess
+    decoded_mixed_audio_ff_file = postprocess_waveform(
+        decoded_pcm, opus_codec["opus_config"]["opus_channels_number"]
+    )
+    if len(decoded_mixed_audio_ff_file) > 0:
+        sf.write(
+            mixed_audio_ff_compressed_file,
+            decoded_mixed_audio_ff_file,
+            target_sample_rate,
+        )
+        print(f"Compressed file saved: {mixed_audio_ff_compressed_file}")
+    else:
+        print("Decoded mixed audio is empty; skipping file saving.")
 
     # Make audios noisy
     snr_db = np.random.uniform(min_noise_desired_snr, max_noise_desired_snr)
@@ -415,14 +460,15 @@ def mix_audio(
     # Save encoded noisy far-field audio
     # Save encoded far-field audio
     if opus_codec["apply_opus"]:
-        noisy_ff_mixed_audio_compressed_file_path = os.path.join(
-            subdirectory_path, f"ff_{unique_id}_noisy_opus.wav"
-        )
-        encode_decode_opus(
-            input_file_path=noisy_ff_mixed_audio_file_path,
-            output_file_path=noisy_ff_mixed_audio_compressed_file_path,
-            bit_rate=opus_codec["bitrate"],
-        )
+        print("here")
+    # noisy_ff_mixed_audio_compressed_file_path = os.path.join(
+    #     subdirectory_path, f"ff_{unique_id}_noisy_opus.wav"
+    # )
+    # encode_decode_opus(
+    #    input_file_path=noisy_ff_mixed_audio_file_path,
+    #    output_file_path=noisy_ff_mixed_audio_compressed_file_path,
+    #    bit_rate=opus_codec["bitrate"],
+    # )
 
     # add random noise from music directory and save file
     additional_music_wav, addition_music_str = load_random_wav(
@@ -501,11 +547,45 @@ def mix_audio(
         noisy_ff_mixed_audio_with_music_compressed_file_path = os.path.join(
             subdirectory_path, f"ff_{unique_id}_noisy_with_music_opus.wav"
         )
-        encode_decode_opus(
-            input_file_path=mixed_audio_ff_file_with_music_path,
-            output_file_path=noisy_ff_mixed_audio_with_music_compressed_file_path,
-            bit_rate=opus_codec["bitrate"],
+        pcm_frames = preprocess_waveform(
+            noisy_ff_with_music_mixed_audio,
+            target_sample_rate,
+            opus_codec["opus_config"]["sample_rate"],
+            opus_codec["opus_config"],
         )
+        if not pcm_frames or len(pcm_frames) == 0:
+            raise ValueError("PCM frames are empty or invalid.")
+
+        decoded_pcm = []
+        frame_size = (opus_codec["opus_config"]["sample_rate"] // 1000) * opus_codec[
+            "opus_config"
+        ]["frame_duration_ms"]
+
+        for chunk in pcm_frames:
+            # Encode and decode each frame
+            encoded_data = opus_encoder.encode(input_data=chunk, frame_size=frame_size)
+            decoded_frame = opus_encoder.decode(
+                input_data=encoded_data, frame_size=frame_size
+            )
+            decoded_pcm.append(decoded_frame)
+
+        # Combine and postprocess the decoded audio
+        decoded_pcm = b"".join(decoded_pcm)
+        decoded_mixed_audio_ff_file = postprocess_waveform(
+            decoded_pcm, opus_codec["opus_config"]["opus_channels_number"]
+        )
+        print(f"Decoded PCM length: {len(decoded_pcm)}")
+
+        # Postprocess
+        decoded_noisy_mixed_audio_ff_with_music_file = postprocess_waveform(
+            decoded_pcm, opus_codec["opus_config"]["opus_channels_number"]
+        )
+        sf.write(
+            noisy_ff_mixed_audio_with_music_compressed_file_path,
+            decoded_noisy_mixed_audio_ff_with_music_file,
+            target_sample_rate,
+        )
+
     # save additional music
     additional_music_path = os.path.join(subdirectory_path, addition_music_str)
     additional_ff_music_path = os.path.join(
@@ -528,9 +608,18 @@ def mix_audio(
     source_1_path = os.path.join(output_path, "train", "source1", f"{unique_id}.wav")
     source_2_path = os.path.join(output_path, "train", "source2", f"{unique_id}.wav")
     mixture_path = os.path.join(output_path, "train", "mixture", f"{unique_id}.wav")
+    compressed_mixture_path = os.path.join(
+        output_path, "train", "compressed_mixture", f"comp_{unique_id}.wav"
+    )
+
     sf.write(source_1_path, ff_audio1, target_sample_rate)
     sf.write(source_2_path, ff_audio2, target_sample_rate)
     sf.write(mixture_path, noisy_ff_with_music_mixed_audio, target_sample_rate)
+    sf.write(
+        compressed_mixture_path,
+        decoded_noisy_mixed_audio_ff_with_music_file,
+        target_sample_rate,
+    )
 
     print(f"finished:{unique_id}", flush=True)
     print("------------------------------------")
@@ -591,12 +680,18 @@ def process_common_voice(
     min_conversation_desired_ssr: int,
     rir_directory: str,
     music_directory: str,
-    opus_codec: Dict[str, str | bool],
+    opus_codec: Dict[str, str | bool | int],
     normalize_lufs: bool,
 ):
     os.makedirs(output_dir, exist_ok=True)
     metadata = []
-
+    encoder_decoder = OpusBytesEncoderDecoder(
+        bitrate=opus_codec["opus_config"]["bitrate"],
+        bit_depth=opus_codec["opus_config"]["bit_depth"],
+    )
+    encoder_decoder.reset_state(
+        sample_rate=config["target_sample_rate"], config=opus_codec["opus_config"]
+    )
     # Extract audio paths and transcriptions
     audio_files = dataset["path"]
     transcriptions = dataset["sentence"]
@@ -627,6 +722,7 @@ def process_common_voice(
             rir_directory=rir_directory,
             music_directory=music_directory,
             opus_codec=opus_codec,
+            opus_encoder=encoder_decoder,
             normalize_lufs=normalize_lufs,
         )
 
@@ -639,7 +735,7 @@ if __name__ == "__main__":
     # load config
     config_path = os.getenv(
         "CONFIG_PATH",
-        "C:\\Users\\arifr\\git\\CommonVoice_RIR\\src\\configs\\create_overlapped_test_set_config.json",
+        "./src/configs/create_overlapped_test_set_config.json",
     )  # Fallback to a default
     with open(config_path, "r") as f:
         config = json.load(f)
