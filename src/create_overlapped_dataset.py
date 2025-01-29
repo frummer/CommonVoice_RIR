@@ -10,6 +10,7 @@ import librosa
 import numpy as np
 import scipy.signal
 import soundfile as sf
+import torch
 import torchaudio.functional as F
 from datasets import Dataset, load_dataset, load_from_disk
 
@@ -271,8 +272,8 @@ def mix_audio(
     music_directory: str,
     opus_codec: Dict[str, str | bool],
     opus_encoder: OpusBytesEncoderDecoder,
+    low_pass_filter_config: Dict[str, bool | int],
     normalize_lufs: bool = False,
-    apply_low_pass_filter: bool = True,
 ):
     # Load audio files
     y1, sr1 = librosa.load(file1_path, sr=None)
@@ -526,12 +527,15 @@ def mix_audio(
         music_scale=music_linear_mult_factor,
     )
 
-    if apply_low_pass_filter:
+    if low_pass_filter_config["apply_low_pass_filter"]:
         noisy_ff_with_music_mixed_audio = F.lowpass_biquad(
-            waveform=noisy_ff_with_music_mixed_audio,
+            waveform=torch.tensor(noisy_ff_with_music_mixed_audio, dtype=torch.float32),
             sample_rate=target_sample_rate,
-            cutoff_freq=1000,
+            cutoff_freq=torch.tensor(
+                float(low_pass_filter_config["cutoff_freq"]), dtype=torch.float32
+            ),
         )
+        noisy_ff_with_music_mixed_audio = noisy_ff_with_music_mixed_audio.numpy()
 
     if np.max(noisy_ff_with_music_mixed_audio) > 0.99:
         print(f"mixture_before_music_lufs:{mixture_before_music_lufs}")
@@ -691,6 +695,7 @@ def process_common_voice(
     music_directory: str,
     opus_codec: Dict[str, str | bool | int],
     normalize_lufs: bool,
+    low_pass_filter_config: Dict[str, bool | int],
 ):
     os.makedirs(output_dir, exist_ok=True)
     metadata = []
@@ -733,6 +738,7 @@ def process_common_voice(
             opus_codec=opus_codec,
             opus_encoder=encoder_decoder,
             normalize_lufs=normalize_lufs,
+            low_pass_filter_config=low_pass_filter_config,
         )
 
     # Save metadata as JSON
@@ -803,4 +809,5 @@ if __name__ == "__main__":
         music_directory=config["directories"]["music_directory"],
         opus_codec=config["opus_codec"],
         normalize_lufs=config["normalize_lufs"],
+        low_pass_filter_config=config["low_pass_filter"],
     )
