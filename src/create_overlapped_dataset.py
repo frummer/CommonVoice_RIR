@@ -10,6 +10,7 @@ import librosa
 import numpy as np
 import scipy.signal
 import soundfile as sf
+import torchaudio.functional as F
 from datasets import Dataset, load_dataset, load_from_disk
 
 from utils.lufs_utils import calculate_lufs, get_lufs_norm_audio
@@ -271,6 +272,7 @@ def mix_audio(
     opus_codec: Dict[str, str | bool],
     opus_encoder: OpusBytesEncoderDecoder,
     normalize_lufs: bool = False,
+    apply_low_pass_filter: bool = True,
 ):
     # Load audio files
     y1, sr1 = librosa.load(file1_path, sr=None)
@@ -523,6 +525,13 @@ def mix_audio(
         wav_file=noisy_ff_mixed_audio,
         music_scale=music_linear_mult_factor,
     )
+
+    if apply_low_pass_filter:
+        noisy_ff_with_music_mixed_audio = F.lowpass_biquad(
+            waveform=noisy_ff_with_music_mixed_audio,
+            sample_rate=target_sample_rate,
+            cutoff_freq=1000,
+        )
 
     if np.max(noisy_ff_with_music_mixed_audio) > 0.99:
         print(f"mixture_before_music_lufs:{mixture_before_music_lufs}")
