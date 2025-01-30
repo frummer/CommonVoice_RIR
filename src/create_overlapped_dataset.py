@@ -254,6 +254,19 @@ def reduce_high_peaks(audio, threshold=0.9):
     return audio
 
 
+def arrange_cutoff_freq_audios_by_power(audio1, audio2, freq1, freq2):
+    """Arrange audios by signal power: stronger first, weaker second."""
+    # Calculate the power of each audio signal
+    signal_power_audio1 = np.mean(audio1**2)
+    signal_power_audio2 = np.mean(audio2**2)
+
+    # Return the audios sorted by descending power
+    if signal_power_audio1 >= signal_power_audio2:
+        return freq1, freq2
+    else:
+        return freq2, freq1
+
+
 def mix_audio(
     file1_path: str,
     file2_path: str,
@@ -275,6 +288,12 @@ def mix_audio(
     low_pass_filter_config: Dict[str, bool | int],
     normalize_lufs: bool = False,
 ):
+    # sample optional bitr_rate_from _range
+    # will be used for this mixture creation
+    sampled_bit_rate = random.choice(
+        range(opus_codec["min_bitrate"], opus_codec["max_bitrate"] + 1000, 1000)
+    )
+    opus_codec["opus_config"]["bitrate"] = sampled_bit_rate
     # Load audio files
     y1, sr1 = librosa.load(file1_path, sr=None)
     y2, sr2 = librosa.load(file2_path, sr=None)
@@ -385,11 +404,48 @@ def mix_audio(
     ff_scaled_file2 = os.path.join(
         subdirectory_path, "ff_scaled_" + os.path.basename(file2_path)
     )
+
     sf.write(ff_original_file1, ff_audio1, target_sample_rate)
     sf.write(ff_original_file2, ff_audio2, target_sample_rate)
     sf.write(ff_scaled_file2, linear_mult_factor * ff_audio2, target_sample_rate)
+    freq1 = None
+    freq2 = None
 
+    # apply low pass filter and save filtered far-field audios
+    if low_pass_filter_config["apply_low_pass_filter"]:
+        freq_1, freq_2 = arrange_cutoff_freq_audios_by_power(
+            ff_audio1,
+            linear_mult_factor * ff_audio2,
+            low_pass_filter_config["cutoff_freq"],
+            low_pass_filter_config["cutoff_freq"]
+            + random.choice(range(500, 1100, 100)),
+        )
+        ff_audio1 = F.lowpass_biquad(
+            waveform=torch.tensor(ff_audio1, dtype=torch.float32),
+            sample_rate=target_sample_rate,
+            cutoff_freq=torch.tensor(float(freq_1), dtype=torch.float32),
+        )
+        ff_audio1 = ff_audio1.numpy()
+
+        ff_audio2 = F.lowpass_biquad(
+            waveform=torch.tensor(ff_audio2, dtype=torch.float32),
+            sample_rate=target_sample_rate,
+            cutoff_freq=torch.tensor(float(freq_2), dtype=torch.float32),
+        )
+        ff_audio2 = ff_audio2.numpy()
+        ff_filtered_original_file1 = os.path.join(
+            subdirectory_path, "ff_filtered_" + os.path.basename(file1_path)
+        )
+        ff_filtered_scaled_file2 = os.path.join(
+            subdirectory_path, "ff_scaled_filtered_" + os.path.basename(file2_path)
+        )
+
+        sf.write(ff_filtered_original_file1, ff_audio1, target_sample_rate)
+        sf.write(
+            ff_filtered_scaled_file2, linear_mult_factor * ff_audio2, target_sample_rate
+        )
     # Mix the audio
+
     ff_mixed_audio = ff_audio1 + linear_mult_factor * ff_audio2
     ff_mixed_audio = normalize_mean(ff_mixed_audio)
     ff_mixed_audio = peak_normalize(ff_mixed_audio, target_peak=0.5)
@@ -462,16 +518,6 @@ def mix_audio(
     sf.write(noisy_ff_mixed_audio_file_path, noisy_ff_mixed_audio, target_sample_rate)
     # Save encoded noisy far-field audio
     # Save encoded far-field audio
-    if opus_codec["apply_opus"]:
-        print("here")
-    # noisy_ff_mixed_audio_compressed_file_path = os.path.join(
-    #     subdirectory_path, f"ff_{unique_id}_noisy_opus.wav"
-    # )
-    # encode_decode_opus(
-    #    input_file_path=noisy_ff_mixed_audio_file_path,
-    #    output_file_path=noisy_ff_mixed_audio_compressed_file_path,
-    #    bit_rate=opus_codec["bitrate"],
-    # )
 
     # add random noise from music directory and save file
     additional_music_wav, addition_music_str = load_random_wav(
@@ -526,16 +572,6 @@ def mix_audio(
         wav_file=noisy_ff_mixed_audio,
         music_scale=music_linear_mult_factor,
     )
-
-    if low_pass_filter_config["apply_low_pass_filter"]:
-        noisy_ff_with_music_mixed_audio = F.lowpass_biquad(
-            waveform=torch.tensor(noisy_ff_with_music_mixed_audio, dtype=torch.float32),
-            sample_rate=target_sample_rate,
-            cutoff_freq=torch.tensor(
-                float(low_pass_filter_config["cutoff_freq"]), dtype=torch.float32
-            ),
-        )
-        noisy_ff_with_music_mixed_audio = noisy_ff_with_music_mixed_audio.numpy()
 
     if np.max(noisy_ff_with_music_mixed_audio) > 0.99:
         print(f"mixture_before_music_lufs:{mixture_before_music_lufs}")
@@ -652,6 +688,7 @@ def mix_audio(
         "music_linear_mult_factor": round(float(music_linear_mult_factor), 3),
         "additional_music": addition_music_str,
         "music_lufs": ff_music_lufs,
+        "compression_bit_rate": sampled_bit_rate,
         "original_files": [
             {
                 "file": os.path.basename(file1_path),
@@ -659,6 +696,7 @@ def mix_audio(
                 "padding_seconds": padding1,
                 "transcription": transcription1,
                 "gt_lufs": y1_lufs,
+                "cutoff_freq": freq_1,
                 "ff_signal_power_audio1": round(float(ff_signal_power_audio1), 7),
             },
             {
@@ -667,6 +705,7 @@ def mix_audio(
                 "padding_seconds": padding2,
                 "transcription": transcription2,
                 "gt_lufs": y2_lufs,
+                "cutoff_freq": freq_2,
                 "ff_signal_power_audio2_before_scale": round(
                     float(ff_signal_power_audio2), 7
                 ),
