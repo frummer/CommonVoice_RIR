@@ -786,6 +786,7 @@ def process_common_voice(
 
 
 if __name__ == "__main__":
+    start_time = time.time()  # Start timer
     # load config
     config_path = os.getenv(
         "CONFIG_PATH",
@@ -850,3 +851,12 @@ if __name__ == "__main__":
         normalize_lufs=config["normalize_lufs"],
         low_pass_filter_config=config["low_pass_filter"],
     )
+    # Calculate and print execution time
+    end_time = time.time()
+    elapsed_seconds = end_time - start_time
+    elapsed_minutes = elapsed_seconds / 60
+    elapsed_hours = elapsed_minutes / 60
+
+    print(f"\nTotal Run Time: {elapsed_seconds:.2f} seconds")
+    print(f"Total Run Time: {elapsed_minutes:.2f} minutes")
+    print(f"Total Run Time: {elapsed_hours:.2f} hours")

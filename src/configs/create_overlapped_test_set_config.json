@@ -13,14 +13,19 @@
         "max_music_ssr": 15,
         "min_music_ssr": 10
     },
-    "opus_codec":{"apply_opus":true,"min_bitrate":8000, "max_bitrate":16000,"opus_config":{"bitrate": 8000,
-                                                    "bit_depth": 16,
-                                                    "sample_rate": 8000,
-                                                    "opus_channels_number": 1,
-                                                    "opus_complexity": 10,
-                                                    "opus_enable_dtx": 0,
-                                                    "opus_sample_rate_factor": 8000,
-                                                    "frame_duration_ms": 20}},
+    "opus_codec":{
+        "apply_opus":true,
+        "min_bitrate":8000,
+        "max_bitrate":16000,
+        "opus_config":{
+            "bitrate": 8000,
+            "bit_depth": 16,
+            "sample_rate": 8000,
+            "opus_channels_number": 1,
+            "opus_complexity": 10,
+            "opus_enable_dtx": 0,
+            "opus_sample_rate_factor": 8000,
+            "frame_duration_ms": 20}},
     "directories": {
         "main_directory": "/app/overlapped_samples",
         "rir_directory": "/app/MIT_RIR",
