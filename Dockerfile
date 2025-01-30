@@ -23,9 +23,6 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir --root-user-action=ignore -r requirements.txt
 
-# Copy the source code into the container
-COPY src/ ./src
-
 # Set Hugging Face token as an environment variable (replace YOUR_HF_API_TOKEN)
 ENV HF_TOKEN=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
 
@@ -36,6 +33,9 @@ RUN python -c "from datasets import load_dataset; \
 
 # Set an environment variable for dataset path
 ENV DATASET_PATH=/mnt/data
+
+# Copy the source code into the container
+COPY src/ ./src
 
 # Set the default command to run Python
 CMD ["python"]

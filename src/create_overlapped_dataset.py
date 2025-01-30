@@ -528,6 +528,24 @@ def mix_audio(
     ff_additional_music_wav = apply_rir_to_audio(additional_music_wav, rir)
     ff_additional_music_wav = normalize_mean(ff_additional_music_wav)
     ff_additional_music_wav = peak_normalize(ff_additional_music_wav, target_peak=0.5)
+    # save additional music
+    additional_music_path = os.path.join(subdirectory_path, addition_music_str)
+    additional_ff_music_path = os.path.join(
+        subdirectory_path, "ff_" + addition_music_str
+    )
+
+    sf.write(additional_music_path, additional_music_wav, target_sample_rate)
+    sf.write(additional_ff_music_path, ff_additional_music_wav, target_sample_rate)
+
+    # apply filter on music
+    if low_pass_filter_config["apply_low_pass_filter"]:
+        ff_additional_music_wav = F.lowpass_biquad(
+            waveform=torch.tensor(ff_additional_music_wav, dtype=torch.float32),
+            sample_rate=target_sample_rate,
+            cutoff_freq=torch.tensor(float(freq_2), dtype=torch.float32),
+        )
+        ff_additional_music_wav = ff_additional_music_wav.numpy()
+
     ff_music_lufs = calculate_lufs(ff_additional_music_wav, sr=target_sample_rate)
     # ff_additional_music_wav = reduce_high_peaks(ff_additional_music_wav, threshold=0.8)
     # ff_additional_music_wav = normalize_audio(ff_additional_music_wav)
@@ -548,25 +566,23 @@ def mix_audio(
         audio2=ff_additional_music_wav,
         sns_db_scale=mix2music_snr_DB,
     )
-    # if music_linear_mult_factor > 0.8:
-    #     print(f"setting music_linear_mult_factor to 0.8")
-    #     music_linear_mult_factor = 0.8
-    # clipping, predicted_max = will_clipping_occur(
-    #     noisy_ff_mixed_audio, ff_additional_music_wav, music_linear_mult_factor
-    # )
-    # if clipping:
-    #     print(
-    #         f"music - Clipping will occur adding music! Predicted max value: {predicted_max:.2f}"
-    #     )
-    #     # Adjust the scaling factor to prevent clipping
-    #     music_linear_mult_factor = music_linear_mult_factor / predicted_max
-    #     print(
-    #         f"music - Scaling factor adjusted to prevent clipping: {music_linear_mult_factor:.2f}"
-    #     )
-    # else:
-    #     print(
-    #         f"music - No clipping expected with adding music. Predicted max value: {predicted_max:.2f}"
-    #     )
+
+    clipping, predicted_max = will_clipping_occur(
+        noisy_ff_mixed_audio, ff_additional_music_wav, music_linear_mult_factor
+    )
+    if clipping:
+        print(
+            f"music - Clipping will occur adding music! Predicted max value: {predicted_max:.2f}"
+        )
+    # save scaled and filtered additional music
+    additional_ff_scaled_filtered_music_path = os.path.join(
+        subdirectory_path, "ff_scaled_filtered_" + addition_music_str
+    )
+    sf.write(
+        additional_ff_scaled_filtered_music_path,
+        music_linear_mult_factor * ff_additional_music_wav,
+        target_sample_rate,
+    )
     noisy_ff_with_music_mixed_audio = add_music_to_mixed_file(
         music=ff_additional_music_wav,
         wav_file=noisy_ff_mixed_audio,
@@ -590,7 +606,11 @@ def mix_audio(
         noisy_ff_with_music_mixed_audio,
         target_sample_rate,
     )
-
+    sf.write(
+        mixed_audio_ff_file_with_music_path,
+        noisy_ff_with_music_mixed_audio,
+        target_sample_rate,
+    )
     # Save compressed mix with noise and overlapped music
     if opus_codec["apply_opus"]:
         noisy_ff_mixed_audio_with_music_compressed_file_path = os.path.join(
@@ -634,23 +654,6 @@ def mix_audio(
             decoded_noisy_mixed_audio_ff_with_music_file,
             target_sample_rate,
         )
-
-    # save additional music
-    additional_music_path = os.path.join(subdirectory_path, addition_music_str)
-    additional_ff_music_path = os.path.join(
-        subdirectory_path, "ff_" + addition_music_str
-    )
-    additional_ff_scaled_music_path = os.path.join(
-        subdirectory_path, "ff_scaled_" + addition_music_str
-    )
-
-    sf.write(additional_music_path, additional_music_wav, target_sample_rate)
-    sf.write(additional_ff_music_path, ff_additional_music_wav, target_sample_rate)
-    sf.write(
-        additional_ff_scaled_music_path,
-        music_linear_mult_factor * ff_additional_music_wav,
-        target_sample_rate,
-    )
 
     # save files to training dir
 
