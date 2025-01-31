@@ -171,6 +171,7 @@ def mix_audio(
     music_directory: str,
     compression: Dict[str, str | bool],
     low_pass_filter_config: Dict[str, bool | int],
+    split: str,
     normalize_lufs: bool = False,
 ):
     # sample optional bitr_rate_from _range
@@ -193,17 +194,17 @@ def mix_audio(
     subdirectory_path = os.path.join(output_path, unique_id)
     os.makedirs(subdirectory_path, exist_ok=True)
     # create directories for training
-    source1_path = os.path.join(output_path, "train", "source1")
+    source1_path = os.path.join(output_path, split, "source1")
     os.makedirs(source1_path, exist_ok=True)
-    source2_path = os.path.join(output_path, "train", "source2")
+    source2_path = os.path.join(output_path, split, "source2")
     os.makedirs(source2_path, exist_ok=True)
-    source1_reverb_path = os.path.join(output_path, "train", "source1_reverb")
+    source1_reverb_path = os.path.join(output_path, split, "source1_reverb")
     os.makedirs(source1_reverb_path, exist_ok=True)
-    source2_reverb_path = os.path.join(output_path, "train", "source2_reverb")
+    source2_reverb_path = os.path.join(output_path, split, "source2_reverb")
     os.makedirs(source2_reverb_path, exist_ok=True)
-    mixture_path = os.path.join(output_path, "train", "mixture")
+    mixture_path = os.path.join(output_path, split, "mixture")
     os.makedirs(mixture_path, exist_ok=True)
-    compressed_mixture_path = os.path.join(output_path, "train", "compressed_mixture")
+    compressed_mixture_path = os.path.join(output_path, split, "compressed_mixture")
     os.makedirs(compressed_mixture_path, exist_ok=True)
     # Load audio files
     y1, sr1 = librosa.load(file1_path, sr=None)
@@ -546,17 +547,17 @@ def mix_audio(
 
     # save files to training dir
 
-    source_1_path = os.path.join(output_path, "train", "source1", f"{unique_id}.wav")
-    source_2_path = os.path.join(output_path, "train", "source2", f"{unique_id}.wav")
+    source_1_path = os.path.join(output_path, split, "source1", f"{unique_id}.wav")
+    source_2_path = os.path.join(output_path, split, "source2", f"{unique_id}.wav")
     source_1_reverb_path = os.path.join(
-        output_path, "train", "source1_reverb", f"{unique_id}.wav"
+        output_path, split, "source1_reverb", f"{unique_id}.wav"
     )
     source_2_reverb_path = os.path.join(
-        output_path, "train", "source2_reverb", f"{unique_id}.wav"
+        output_path, split, "source2_reverb", f"{unique_id}.wav"
     )
-    mixture_path = os.path.join(output_path, "train", "mixture", f"{unique_id}.wav")
+    mixture_path = os.path.join(output_path, split, "mixture", f"{unique_id}.wav")
     compressed_mixture_path = os.path.join(
-        output_path, "train", "compressed_mixture", f"comp_{unique_id}.wav"
+        output_path, split, "compressed_mixture", f"comp_{unique_id}.wav"
     )
 
     sf.write(source_1_path, y1, target_sample_rate)
@@ -635,6 +636,7 @@ def process_common_voice(
     compression: Dict[str, str | bool | int],
     normalize_lufs: bool,
     low_pass_filter_config: Dict[str, bool | int],
+    split: str,
 ):
     os.makedirs(output_dir, exist_ok=True)
     metadata = []
@@ -671,6 +673,7 @@ def process_common_voice(
             compression=compression,
             normalize_lufs=normalize_lufs,
             low_pass_filter_config=low_pass_filter_config,
+            split=split,
         )
 
     # Save metadata as JSON
@@ -744,6 +747,7 @@ if __name__ == "__main__":
         compression=config["compression"],
         normalize_lufs=config["normalize_lufs"],
         low_pass_filter_config=config["low_pass_filter"],
+        split=split,
     )
     # Calculate and print execution time
     end_time = time.time()
