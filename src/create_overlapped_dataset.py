@@ -1,3 +1,4 @@
+import argparse
 import json
 import os
 import random
@@ -684,10 +685,18 @@ def process_common_voice(
 if __name__ == "__main__":
     start_time = time.time()  # Start timer
     # load config
-    config_path = os.getenv(
-        "CONFIG_PATH",
-        "./src/configs/create_overlapped_test_set_config.json",
-    )  # Fallback to a default
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(description="Create overlapped test set mixtures.")
+    parser.add_argument(
+        "--config_path",
+        type=str,
+        default="./src/configs/create_overlapped_test_set_config.json",
+        help="Path to the configuration JSON file.",
+    )
+    args = parser.parse_args()
+    # Load config from the provided config_path argument
+    config_path = args.config_path
+    print(f"config path:{config_path}")
     with open(config_path, "r") as f:
         config = json.load(f)
     # fmt: off
