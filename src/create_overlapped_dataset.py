@@ -13,6 +13,7 @@ import soundfile as sf
 import torch
 import torchaudio.functional as F
 from datasets import load_dataset
+from tqdm import tqdm
 
 from utils.lufs_utils import calculate_lufs, get_lufs_norm_audio
 from utils.opuslib_module import (
@@ -648,7 +649,9 @@ def process_common_voice(
     # random.shuffle(data)
 
     # Create overlapping pairs (non-redundant)
-    for i in range(0, desired_mixtures_amount * 2 - 1, 2):
+    for i in tqdm(
+        range(0, desired_mixtures_amount * 2 - 1, 2), desc="Processing Mixtures"
+    ):
         # Step by 2 to ensure no file is reused
         file1_path, transcription1 = data[i]
         file2_path, transcription2 = data[i + 1]
