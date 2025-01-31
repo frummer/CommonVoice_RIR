@@ -15,7 +15,6 @@ import torchaudio.functional as F
 from datasets import load_dataset
 
 from utils.lufs_utils import calculate_lufs, get_lufs_norm_audio
-from utils.opus_codec import encode_decode_opus
 from utils.opuslib_module import (
     OpusBytesEncoderDecoder,
     postprocess_waveform,
@@ -170,17 +169,23 @@ def mix_audio(
     metadata,
     rir_directory: str,
     music_directory: str,
-    opus_codec: Dict[str, str | bool],
-    opus_encoder: OpusBytesEncoderDecoder,
+    compression: Dict[str, str | bool],
     low_pass_filter_config: Dict[str, bool | int],
     normalize_lufs: bool = False,
 ):
     # sample optional bitr_rate_from _range
     # will be used for this mixture creation
     sampled_bit_rate = random.choice(
-        range(opus_codec["min_bitrate"], opus_codec["max_bitrate"] + 1000, 1000)
+        range(compression["min_bitrate"], compression["max_bitrate"] + 1000, 1000)
     )
-    opus_codec["opus_config"]["bitrate"] = sampled_bit_rate
+    compression_encoder_decoder = OpusBytesEncoderDecoder(
+        bitrate=sampled_bit_rate,
+        bit_depth=compression["compression_config"]["bit_depth"],
+    )
+    compression_encoder_decoder.reset_state(
+        sample_rate=config["target_sample_rate"],
+        config=compression["compression_config"],
+    )
     # Load audio files
     y1, sr1 = librosa.load(file1_path, sr=None)
     y2, sr2 = librosa.load(file2_path, sr=None)
@@ -340,28 +345,30 @@ def mix_audio(
     sf.write(mixed_audio_ff_file, ff_mixed_audio, target_sample_rate)
 
     # Save decompressed far-field audio
-    if opus_codec["apply_opus"]:
+    if compression["apply_compression"]:
         mixed_audio_ff_compressed_file = os.path.join(
             subdirectory_path, f"ff_{unique_id}_opus.wav"
         )
         pcm_frames = preprocess_waveform(
             ff_mixed_audio,
             target_sample_rate,
-            opus_codec["opus_config"]["sample_rate"],
-            opus_codec["opus_config"],
+            compression["compression_config"]["sample_rate"],
+            compression["compression_config"],
         )
         if not pcm_frames or len(pcm_frames) == 0:
             raise ValueError("PCM frames are empty or invalid.")
 
         decoded_pcm = []
-        frame_size = (opus_codec["opus_config"]["sample_rate"] // 1000) * opus_codec[
-            "opus_config"
-        ]["frame_duration_ms"]
+        frame_size = (
+            compression["compression_config"]["sample_rate"] // 1000
+        ) * compression["compression_config"]["frame_duration_ms"]
 
         for chunk in pcm_frames:
             # Encode and decode each frame
-            encoded_data = opus_encoder.encode(input_data=chunk, frame_size=frame_size)
-            decoded_frame = opus_encoder.decode(
+            encoded_data = compression_encoder_decoder.encode(
+                input_data=chunk, frame_size=frame_size
+            )
+            decoded_frame = compression_encoder_decoder.decode(
                 input_data=encoded_data, frame_size=frame_size
             )
             decoded_pcm.append(decoded_frame)
@@ -369,13 +376,13 @@ def mix_audio(
         # Combine and postprocess the decoded audio
         decoded_pcm = b"".join(decoded_pcm)
         decoded_mixed_audio_ff_file = postprocess_waveform(
-            decoded_pcm, opus_codec["opus_config"]["opus_channels_number"]
+            decoded_pcm, compression["compression_config"]["opus_channels_number"]
         )
         print(f"Decoded PCM length: {len(decoded_pcm)}")
 
         # Postprocess
         decoded_mixed_audio_ff_file = postprocess_waveform(
-            decoded_pcm, opus_codec["opus_config"]["opus_channels_number"]
+            decoded_pcm, compression["compression_config"]["opus_channels_number"]
         )
         if len(decoded_mixed_audio_ff_file) > 0:
             sf.write(
@@ -492,28 +499,30 @@ def mix_audio(
         target_sample_rate,
     )
     # Save compressed mix with noise and overlapped music
-    if opus_codec["apply_opus"]:
+    if compression["apply_compression"]:
         noisy_ff_mixed_audio_with_music_compressed_file_path = os.path.join(
             subdirectory_path, f"ff_{unique_id}_noisy_with_music_opus.wav"
         )
         pcm_frames = preprocess_waveform(
             noisy_ff_with_music_mixed_audio,
             target_sample_rate,
-            opus_codec["opus_config"]["sample_rate"],
-            opus_codec["opus_config"],
+            compression["compression_config"]["sample_rate"],
+            compression["compression_config"],
         )
         if not pcm_frames or len(pcm_frames) == 0:
             raise ValueError("PCM frames are empty or invalid.")
 
         decoded_pcm = []
-        frame_size = (opus_codec["opus_config"]["sample_rate"] // 1000) * opus_codec[
-            "opus_config"
-        ]["frame_duration_ms"]
+        frame_size = (
+            compression["compression_config"]["sample_rate"] // 1000
+        ) * compression["compression_config"]["frame_duration_ms"]
 
         for chunk in pcm_frames:
             # Encode and decode each frame
-            encoded_data = opus_encoder.encode(input_data=chunk, frame_size=frame_size)
-            decoded_frame = opus_encoder.decode(
+            encoded_data = compression_encoder_decoder.encode(
+                input_data=chunk, frame_size=frame_size
+            )
+            decoded_frame = compression_encoder_decoder.decode(
                 input_data=encoded_data, frame_size=frame_size
             )
             decoded_pcm.append(decoded_frame)
@@ -521,13 +530,13 @@ def mix_audio(
         # Combine and postprocess the decoded audio
         decoded_pcm = b"".join(decoded_pcm)
         decoded_mixed_audio_ff_file = postprocess_waveform(
-            decoded_pcm, opus_codec["opus_config"]["opus_channels_number"]
+            decoded_pcm, compression["compression_config"]["opus_channels_number"]
         )
         print(f"Decoded PCM length: {len(decoded_pcm)}")
 
         # Postprocess
         decoded_noisy_mixed_audio_ff_with_music_file = postprocess_waveform(
-            decoded_pcm, opus_codec["opus_config"]["opus_channels_number"]
+            decoded_pcm, compression["compression_config"]["opus_channels_number"]
         )
         sf.write(
             noisy_ff_mixed_audio_with_music_compressed_file_path,
@@ -623,19 +632,13 @@ def process_common_voice(
     min_conversation_desired_ssr: int,
     rir_directory: str,
     music_directory: str,
-    opus_codec: Dict[str, str | bool | int],
+    compression: Dict[str, str | bool | int],
     normalize_lufs: bool,
     low_pass_filter_config: Dict[str, bool | int],
 ):
     os.makedirs(output_dir, exist_ok=True)
     metadata = []
-    encoder_decoder = OpusBytesEncoderDecoder(
-        bitrate=opus_codec["opus_config"]["bitrate"],
-        bit_depth=opus_codec["opus_config"]["bit_depth"],
-    )
-    encoder_decoder.reset_state(
-        sample_rate=config["target_sample_rate"], config=opus_codec["opus_config"]
-    )
+
     # Extract audio paths and transcriptions
     audio_files = dataset["path"]
     transcriptions = dataset["sentence"]
@@ -665,8 +668,7 @@ def process_common_voice(
             metadata,
             rir_directory=rir_directory,
             music_directory=music_directory,
-            opus_codec=opus_codec,
-            opus_encoder=encoder_decoder,
+            compression=compression,
             normalize_lufs=normalize_lufs,
             low_pass_filter_config=low_pass_filter_config,
         )
@@ -738,7 +740,7 @@ if __name__ == "__main__":
         min_music_ssr=min_music_ssr,
         rir_directory=config["directories"]["rir_directory"],
         music_directory=config["directories"]["music_directory"],
-        opus_codec=config["opus_codec"],
+        compression=config["compression"],
         normalize_lufs=config["normalize_lufs"],
         low_pass_filter_config=config["low_pass_filter"],
     )
