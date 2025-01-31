@@ -2,7 +2,7 @@
 // README at: https://github.com/devcontainers/templates/tree/main/src/docker-existing-dockerfile
 {
 	"name": "Common Voice RIR",
-	"image": "common_voice_rir:0.0.12", // Replace with your Docker image name and tag
+	"image": "common_voice_rir:0.0.17", // Replace with your Docker image name and tag
 	"workspaceFolder": "/app", // Path where your project will be available inside the container
     "customizations": {
         "vscode": {
