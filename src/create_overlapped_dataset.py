@@ -12,7 +12,7 @@ import scipy.signal
 import soundfile as sf
 import torch
 import torchaudio.functional as F
-from datasets import Dataset, load_dataset, load_from_disk
+from datasets import load_dataset
 
 from utils.lufs_utils import calculate_lufs, get_lufs_norm_audio
 from utils.opus_codec import encode_decode_opus
@@ -21,114 +21,6 @@ from utils.opuslib_module import (
     postprocess_waveform,
     preprocess_waveform,
 )
-
-
-def preprocess_dataset(
-    dataset,
-    long_length_overlapped_samples_amount: int,
-    short_length_overlapped_samples_amount: int,
-    mixed_length_overlapped_samples_amount: int,
-    long_audio_threshold: int,
-    short_audio_threshold: int,
-):
-    if mixed_length_overlapped_samples_amount % 2 != 0:
-        mixed_length_overlapped_samples_amount += 1
-    start_time = time.time()
-    min_length_dataset = dataset.filter(
-        filter_long_audio, fn_kwargs={"min_duration": long_audio_threshold}
-    )
-    min_length_dataset_length = len(min_length_dataset)
-    subset_min_length_dataset = min_length_dataset.select(
-        range(
-            2 * long_length_overlapped_samples_amount
-            + mixed_length_overlapped_samples_amount
-        )
-    )
-    range_dataset = dataset.filter(
-        filter_duration_range,
-        fn_kwargs={
-            "min_duration": short_audio_threshold,
-            "max_duration": long_audio_threshold,
-        },
-    )
-    subset_range_length_dataset = range_dataset.select(
-        range(
-            2 * short_length_overlapped_samples_amount
-            + mixed_length_overlapped_samples_amount
-        )
-    )
-    # ----------------------
-    # Split Each Subset into First Half + Remainder
-    # ----------------------
-
-    lenA = len(subset_min_length_dataset)
-    lenB = len(subset_range_length_dataset)
-
-    halfA = lenA // 2
-    halfB = lenB // 2
-
-    subsetA_half = subset_min_length_dataset.select(range(halfA))
-    subsetA_remainder = subset_min_length_dataset.select(range(halfA, lenA))
-
-    subsetB_half = subset_range_length_dataset.select(range(halfB))
-    subsetB_remainder = subset_range_length_dataset.select(range(halfB, lenB))
-
-    print("Subset A half:", len(subsetA_half), " | remainder:", len(subsetA_remainder))
-    print("Subset B half:", len(subsetB_half), " | remainder:", len(subsetB_remainder))
-
-    # ----------------------
-    # 4) Build Final Dataset in the Required Order
-    # ----------------------
-    #
-    # Order:
-    #   (1) All from 'subsetA_half',
-    #   (2) All from 'subsetB_half',
-    #   (3) Interleave the remainders: [A_rem[0], B_rem[0], A_rem[1], B_rem[1], ...],
-    #       plus any leftover if one remainder is larger than the other.
-
-    final_list = []
-
-    # Part 1: Append the first half of A
-    for i in range(len(subsetA_half)):
-        final_list.append(subsetA_half[i])
-
-    # Part 2: Append the first half of B
-    for i in range(len(subsetB_half)):
-        final_list.append(subsetB_half[i])
-
-    # Part 3: Interleave the remainders
-    n = min(len(subsetA_remainder), len(subsetB_remainder))
-    for i in range(n):
-        final_list.append(subsetA_remainder[i])
-        final_list.append(subsetB_remainder[i])
-
-    # Convert the final list of dicts to a Hugging Face Dataset
-    final_dataset = Dataset.from_list(final_list)
-
-    print(
-        f"Finished pre-processings data. took: {round(time.time()-start_time,2)} seconds"
-    )
-
-    return final_dataset
-
-
-def filter_duration_range(example, min_duration=5.0, max_duration=10.0):
-    audio_array = example["audio"]["array"]
-    sr = example["audio"]["sampling_rate"]
-    duration_sec = len(audio_array) / sr
-    return (duration_sec >= min_duration) and (duration_sec <= max_duration)
-
-
-def filter_long_audio(example, min_duration=10.0):
-    """Filters audio files longer than min_duration seconds."""
-    duration = len(example["audio"]["array"]) / example["audio"]["sampling_rate"]
-    return duration > min_duration
-
-
-def normalize_audio(audio):
-    audio = audio - np.mean(audio)
-    audio = audio / np.max(np.abs(audio))
-    return audio
 
 
 def normalize_mean(audio):
@@ -233,11 +125,6 @@ def calc_scale_factor(audio1, audio2, sns_db_scale: int):
     return a, signal_power_audio1, signal_power_audio2, snr_linear
 
 
-def clip_audio(audio, min_val=-1.0, max_val=1.0):
-    """Clip audio samples to prevent exceeding valid range."""
-    return np.clip(audio, min_val, max_val)
-
-
 def peak_normalize(audio, target_peak=0.98):
     """Normalize audio so that the maximum absolute amplitude equals target_peak."""
     max_amplitude = np.max(np.abs(audio))
@@ -320,6 +207,10 @@ def mix_audio(
     os.makedirs(source1_path, exist_ok=True)
     source2_path = os.path.join(output_path, "train", "source2")
     os.makedirs(source2_path, exist_ok=True)
+    source1_reverb_path = os.path.join(output_path, "train", "source1_reverb")
+    os.makedirs(source1_path, exist_ok=True)
+    source2_reverb_path = os.path.join(output_path, "train", "source2_reverb")
+    os.makedirs(source2_path, exist_ok=True)
     mixture_path = os.path.join(output_path, "train", "mixture")
     os.makedirs(mixture_path, exist_ok=True)
     compressed_mixture_path = os.path.join(output_path, "train", "compressed_mixture")
@@ -362,7 +253,6 @@ def mix_audio(
         ff_audio2, gain2 = get_lufs_norm_audio(
             audio=ff_audio2.squeeze(), sr=target_sample_rate, lufs=-25
         )
-        # save lufs
     # Sample scale factor between audios
     scale_factor_DB = np.random.uniform(
         min_conversation_desired_ssr, max_conversation_desired_ssr
@@ -382,11 +272,6 @@ def mix_audio(
     if clipping:
         print(
             f"speaker scaling - Clipping will occur! Predicted max value: {predicted_max:.2f}"
-        )
-        # Adjust the scaling factor to prevent clipping
-        linear_mult_factor = linear_mult_factor / predicted_max
-        print(
-            f"speaker scaling - Scaling factor adjusted to prevent clipping: {linear_mult_factor:.2f}"
         )
     else:
         print(
@@ -454,53 +339,53 @@ def mix_audio(
     mixed_audio_ff_file = os.path.join(subdirectory_path, f"ff_{unique_id}.wav")
     sf.write(mixed_audio_ff_file, ff_mixed_audio, target_sample_rate)
 
-    # Save encoded far-field audio
+    # Save decompressed far-field audio
     if opus_codec["apply_opus"]:
         mixed_audio_ff_compressed_file = os.path.join(
             subdirectory_path, f"ff_{unique_id}_opus.wav"
         )
-    pcm_frames = preprocess_waveform(
-        ff_mixed_audio,
-        target_sample_rate,
-        opus_codec["opus_config"]["sample_rate"],
-        opus_codec["opus_config"],
-    )
-    if not pcm_frames or len(pcm_frames) == 0:
-        raise ValueError("PCM frames are empty or invalid.")
-
-    decoded_pcm = []
-    frame_size = (opus_codec["opus_config"]["sample_rate"] // 1000) * opus_codec[
-        "opus_config"
-    ]["frame_duration_ms"]
-
-    for chunk in pcm_frames:
-        # Encode and decode each frame
-        encoded_data = opus_encoder.encode(input_data=chunk, frame_size=frame_size)
-        decoded_frame = opus_encoder.decode(
-            input_data=encoded_data, frame_size=frame_size
-        )
-        decoded_pcm.append(decoded_frame)
-
-    # Combine and postprocess the decoded audio
-    decoded_pcm = b"".join(decoded_pcm)
-    decoded_mixed_audio_ff_file = postprocess_waveform(
-        decoded_pcm, opus_codec["opus_config"]["opus_channels_number"]
-    )
-    print(f"Decoded PCM length: {len(decoded_pcm)}")
-
-    # Postprocess
-    decoded_mixed_audio_ff_file = postprocess_waveform(
-        decoded_pcm, opus_codec["opus_config"]["opus_channels_number"]
-    )
-    if len(decoded_mixed_audio_ff_file) > 0:
-        sf.write(
-            mixed_audio_ff_compressed_file,
-            decoded_mixed_audio_ff_file,
+        pcm_frames = preprocess_waveform(
+            ff_mixed_audio,
             target_sample_rate,
+            opus_codec["opus_config"]["sample_rate"],
+            opus_codec["opus_config"],
         )
-        print(f"Compressed file saved: {mixed_audio_ff_compressed_file}")
-    else:
-        print("Decoded mixed audio is empty; skipping file saving.")
+        if not pcm_frames or len(pcm_frames) == 0:
+            raise ValueError("PCM frames are empty or invalid.")
+
+        decoded_pcm = []
+        frame_size = (opus_codec["opus_config"]["sample_rate"] // 1000) * opus_codec[
+            "opus_config"
+        ]["frame_duration_ms"]
+
+        for chunk in pcm_frames:
+            # Encode and decode each frame
+            encoded_data = opus_encoder.encode(input_data=chunk, frame_size=frame_size)
+            decoded_frame = opus_encoder.decode(
+                input_data=encoded_data, frame_size=frame_size
+            )
+            decoded_pcm.append(decoded_frame)
+
+        # Combine and postprocess the decoded audio
+        decoded_pcm = b"".join(decoded_pcm)
+        decoded_mixed_audio_ff_file = postprocess_waveform(
+            decoded_pcm, opus_codec["opus_config"]["opus_channels_number"]
+        )
+        print(f"Decoded PCM length: {len(decoded_pcm)}")
+
+        # Postprocess
+        decoded_mixed_audio_ff_file = postprocess_waveform(
+            decoded_pcm, opus_codec["opus_config"]["opus_channels_number"]
+        )
+        if len(decoded_mixed_audio_ff_file) > 0:
+            sf.write(
+                mixed_audio_ff_compressed_file,
+                decoded_mixed_audio_ff_file,
+                target_sample_rate,
+            )
+            print(f"Compressed file saved: {mixed_audio_ff_compressed_file}")
+        else:
+            print("Decoded mixed audio is empty; skipping file saving.")
 
     # Make audios noisy
     snr_db = np.random.uniform(min_noise_desired_snr, max_noise_desired_snr)
@@ -516,15 +401,13 @@ def mix_audio(
         subdirectory_path, f"{unique_id}_noisy.wav"
     )
     sf.write(noisy_ff_mixed_audio_file_path, noisy_ff_mixed_audio, target_sample_rate)
-    # Save encoded noisy far-field audio
-    # Save encoded far-field audio
 
     # add random noise from music directory and save file
     additional_music_wav, addition_music_str = load_random_wav(
         directory=music_directory, target_sample_rate=target_sample_rate
     )
     additional_music_wav = normalize_mean(additional_music_wav)
-    additional_music_wav = peak_normalize(additional_music_wav, target_peak=0.3)
+    additional_music_wav = peak_normalize(additional_music_wav, target_peak=0.5)
     ff_additional_music_wav = apply_rir_to_audio(additional_music_wav, rir)
     ff_additional_music_wav = normalize_mean(ff_additional_music_wav)
     ff_additional_music_wav = peak_normalize(ff_additional_music_wav, target_peak=0.5)
@@ -547,8 +430,6 @@ def mix_audio(
         ff_additional_music_wav = ff_additional_music_wav.numpy()
 
     ff_music_lufs = calculate_lufs(ff_additional_music_wav, sr=target_sample_rate)
-    # ff_additional_music_wav = reduce_high_peaks(ff_additional_music_wav, threshold=0.8)
-    # ff_additional_music_wav = normalize_audio(ff_additional_music_wav)
     if normalize_lufs:
         ff_additional_music_wav, music_gain2 = get_lufs_norm_audio(
             audio=ff_additional_music_wav.squeeze(), sr=target_sample_rate, lufs=-33
@@ -573,6 +454,10 @@ def mix_audio(
     if clipping:
         print(
             f"music - Clipping will occur adding music! Predicted max value: {predicted_max:.2f}"
+        )
+    else:
+        print(
+            f"speaker scaling - No clipping expected. Predicted max value: {predicted_max:.2f}"
         )
     # save scaled and filtered additional music
     additional_ff_scaled_filtered_music_path = os.path.join(
@@ -600,11 +485,6 @@ def mix_audio(
     # save far-field mix with noise and overlapped music
     mixed_audio_ff_file_with_music_path = os.path.join(
         subdirectory_path, f"ff_{unique_id}_noisy_with_music.wav"
-    )
-    sf.write(
-        mixed_audio_ff_file_with_music_path,
-        noisy_ff_with_music_mixed_audio,
-        target_sample_rate,
     )
     sf.write(
         mixed_audio_ff_file_with_music_path,
@@ -659,13 +539,21 @@ def mix_audio(
 
     source_1_path = os.path.join(output_path, "train", "source1", f"{unique_id}.wav")
     source_2_path = os.path.join(output_path, "train", "source2", f"{unique_id}.wav")
+    source_1_reverb_path = os.path.join(
+        output_path, "train", "source1_reverb", f"{unique_id}.wav"
+    )
+    source_2_reverb_path = os.path.join(
+        output_path, "train", "source2_reverb", f"{unique_id}.wav"
+    )
     mixture_path = os.path.join(output_path, "train", "mixture", f"{unique_id}.wav")
     compressed_mixture_path = os.path.join(
         output_path, "train", "compressed_mixture", f"comp_{unique_id}.wav"
     )
 
-    sf.write(source_1_path, ff_audio1, target_sample_rate)
-    sf.write(source_2_path, ff_audio2, target_sample_rate)
+    sf.write(source_1_path, y1, target_sample_rate)
+    sf.write(source_2_path, y2, target_sample_rate)
+    sf.write(source_1_reverb_path, ff_audio1, target_sample_rate)
+    sf.write(source_2_reverb_path, ff_audio2, target_sample_rate)
     sf.write(mixture_path, noisy_ff_with_music_mixed_audio, target_sample_rate)
     sf.write(
         compressed_mixture_path,
