@@ -1,3 +1,4 @@
+import argparse
 import json
 import os
 import random
@@ -172,6 +173,7 @@ def mix_audio(
     music_directory: str,
     compression: Dict[str, str | bool],
     low_pass_filter_config: Dict[str, bool | int],
+    split: str,
     normalize_lufs: bool = False,
 ):
     # sample optional bitr_rate_from _range
@@ -187,6 +189,25 @@ def mix_audio(
         sample_rate=config["target_sample_rate"],
         config=compression["compression_config"],
     )
+
+    # Generate unique ID and save mixed audio
+    unique_id = str(uuid4())
+    print(f"starting:{unique_id}", flush=True)
+    subdirectory_path = os.path.join(output_path, unique_id)
+    os.makedirs(subdirectory_path, exist_ok=True)
+    # create directories for training
+    source1_path = os.path.join(output_path, split, "source1")
+    os.makedirs(source1_path, exist_ok=True)
+    source2_path = os.path.join(output_path, split, "source2")
+    os.makedirs(source2_path, exist_ok=True)
+    source1_reverb_path = os.path.join(output_path, split, "source1_reverb")
+    os.makedirs(source1_reverb_path, exist_ok=True)
+    source2_reverb_path = os.path.join(output_path, split, "source2_reverb")
+    os.makedirs(source2_reverb_path, exist_ok=True)
+    mixture_path = os.path.join(output_path, split, "mixture")
+    os.makedirs(mixture_path, exist_ok=True)
+    compressed_mixture_path = os.path.join(output_path, split, "compressed_mixture")
+    os.makedirs(compressed_mixture_path, exist_ok=True)
     # Load audio files
     y1, sr1 = librosa.load(file1_path, sr=None)
     y2, sr2 = librosa.load(file2_path, sr=None)
@@ -196,36 +217,6 @@ def mix_audio(
 
     if sr2 != target_sample_rate:
         y2 = librosa.resample(y2, orig_sr=sr2, target_sr=target_sample_rate)
-    y1 = normalize_mean(y1)
-    y2 = normalize_mean(y2)
-    y1 = peak_normalize(audio=y1, target_peak=0.5)
-    y2 = peak_normalize(audio=y2, target_peak=0.5)
-    y1_lufs = calculate_lufs(y1, sr=target_sample_rate)
-    y2_lufs = calculate_lufs(y2, sr=target_sample_rate)
-
-    # Generate unique ID and save mixed audio
-    unique_id = str(uuid4())
-    print(f"starting:{unique_id}", flush=True)
-    subdirectory_path = os.path.join(output_path, unique_id)
-    os.makedirs(subdirectory_path, exist_ok=True)
-    # create directories for training
-    source1_path = os.path.join(output_path, "train", "source1")
-    os.makedirs(source1_path, exist_ok=True)
-    source2_path = os.path.join(output_path, "train", "source2")
-    os.makedirs(source2_path, exist_ok=True)
-    source1_reverb_path = os.path.join(output_path, "train", "source1_reverb")
-    os.makedirs(source1_reverb_path, exist_ok=True)
-    source2_reverb_path = os.path.join(output_path, "train", "source2_reverb")
-    os.makedirs(source2_reverb_path, exist_ok=True)
-    mixture_path = os.path.join(output_path, "train", "mixture")
-    os.makedirs(mixture_path, exist_ok=True)
-    compressed_mixture_path = os.path.join(output_path, "train", "compressed_mixture")
-    os.makedirs(compressed_mixture_path, exist_ok=True)
-    # Save original files
-    original_file1 = os.path.join(subdirectory_path, os.path.basename(file1_path))
-    original_file2 = os.path.join(subdirectory_path, os.path.basename(file2_path))
-    sf.write(original_file1, y1, target_sample_rate)
-    sf.write(original_file2, y2, target_sample_rate)
 
     # Calculate original lengths
     length1 = len(y1) / target_sample_rate
@@ -240,7 +231,18 @@ def mix_audio(
         pad_length = (len(y2) - len(y1)) / target_sample_rate
         y1 = np.pad(y1, (0, len(y2) - len(y1)), mode="constant")
         padding1, padding2 = pad_length, 0
+    # Save original files
+    original_file1 = os.path.join(subdirectory_path, os.path.basename(file1_path))
+    original_file2 = os.path.join(subdirectory_path, os.path.basename(file2_path))
+    sf.write(original_file1, y1, target_sample_rate)
+    sf.write(original_file2, y2, target_sample_rate)
 
+    y1 = normalize_mean(y1)
+    y2 = normalize_mean(y2)
+    y1 = peak_normalize(audio=y1, target_peak=0.5)
+    y2 = peak_normalize(audio=y2, target_peak=0.5)
+    y1_lufs = calculate_lufs(y1, sr=target_sample_rate)
+    y2_lufs = calculate_lufs(y2, sr=target_sample_rate)
     # apply Room impulse on audio + scaling and save file
     rir, _ = load_random_wav(
         directory=rir_directory, target_sample_rate=target_sample_rate
@@ -547,17 +549,17 @@ def mix_audio(
 
     # save files to training dir
 
-    source_1_path = os.path.join(output_path, "train", "source1", f"{unique_id}.wav")
-    source_2_path = os.path.join(output_path, "train", "source2", f"{unique_id}.wav")
+    source_1_path = os.path.join(output_path, split, "source1", f"{unique_id}.wav")
+    source_2_path = os.path.join(output_path, split, "source2", f"{unique_id}.wav")
     source_1_reverb_path = os.path.join(
-        output_path, "train", "source1_reverb", f"{unique_id}.wav"
+        output_path, split, "source1_reverb", f"{unique_id}.wav"
     )
     source_2_reverb_path = os.path.join(
-        output_path, "train", "source2_reverb", f"{unique_id}.wav"
+        output_path, split, "source2_reverb", f"{unique_id}.wav"
     )
-    mixture_path = os.path.join(output_path, "train", "mixture", f"{unique_id}.wav")
+    mixture_path = os.path.join(output_path, split, "mixture", f"{unique_id}.wav")
     compressed_mixture_path = os.path.join(
-        output_path, "train", "compressed_mixture", f"comp_{unique_id}.wav"
+        output_path, split, "compressed_mixture", f"comp_{unique_id}.wav"
     )
 
     sf.write(source_1_path, y1, target_sample_rate)
@@ -636,6 +638,7 @@ def process_common_voice(
     compression: Dict[str, str | bool | int],
     normalize_lufs: bool,
     low_pass_filter_config: Dict[str, bool | int],
+    split: str,
 ):
     os.makedirs(output_dir, exist_ok=True)
     metadata = []
@@ -674,6 +677,7 @@ def process_common_voice(
             compression=compression,
             normalize_lufs=normalize_lufs,
             low_pass_filter_config=low_pass_filter_config,
+            split=split,
         )
 
     # Save metadata as JSON
@@ -684,10 +688,18 @@ def process_common_voice(
 if __name__ == "__main__":
     start_time = time.time()  # Start timer
     # load config
-    config_path = os.getenv(
-        "CONFIG_PATH",
-        "./src/configs/create_overlapped_test_set_config.json",
-    )  # Fallback to a default
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(description="Create overlapped test set mixtures.")
+    parser.add_argument(
+        "--config_path",
+        type=str,
+        default="./src/configs/create_overlapped_test_set_config.json",
+        help="Path to the configuration JSON file.",
+    )
+    args = parser.parse_args()
+    # Load config from the provided config_path argument
+    config_path = args.config_path
+    print(f"config path:{config_path}")
     with open(config_path, "r") as f:
         config = json.load(f)
     # fmt: off
@@ -697,7 +709,7 @@ if __name__ == "__main__":
     min_noise_desired_snr = config["signal_to_signal_ratios"]["min_noise_desired_snr"]
     max_music_ssr = config["signal_to_signal_ratios"]["max_music_ssr"]
     min_music_ssr = config["signal_to_signal_ratios"]["min_music_ssr"]
-
+    split = config["dataset_split"]
     # load dataset
     dataset = load_dataset("mozilla-foundation/common_voice_12_0",config["dataset_language"],split=config["dataset_split"],trust_remote_code=True)
     if "desired_mixtures_amount" in config:
@@ -714,7 +726,8 @@ if __name__ == "__main__":
     # Format the date and time with underscores
     formatted_date = current_datetime.strftime("%d_%m_%Y_%H_%M_%S")
     # fmt: off
-    output_dir_name = f"{formatted_date}"\
+    output_dir_name = f"{split}"\
+                      f"_{formatted_date}"\
                       f"_{max_conversation_desired_ssr}_{min_conversation_desired_ssr}"\
                       f"_{max_noise_desired_snr}_{min_noise_desired_snr}"\
                       f"_{max_music_ssr}_{min_music_ssr}"
@@ -746,6 +759,7 @@ if __name__ == "__main__":
         compression=config["compression"],
         normalize_lufs=config["normalize_lufs"],
         low_pass_filter_config=config["low_pass_filter"],
+        split=split,
     )
     # Calculate and print execution time
     end_time = time.time()

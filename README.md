@@ -44,3 +44,8 @@ create config.json file in src and run program
     "low_pass_filter":{"apply_low_pass_filter":bool, "cutoff_freq":int} # low pass filter coniguration - optional 
 }
 ```
+
+## Run Command
+```
+python /path/to/your/create_overlapped_dataset.py --config_path /path/to/your/config.json
+```
