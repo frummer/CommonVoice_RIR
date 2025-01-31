@@ -26,7 +26,7 @@
         "rir_directory": "/export/fs05/afrumme1/mit_and_Motus_rir",
         "music_directory": "/export/corpora6/musan/noise/free-sound"
     },
-    "dataset_split":"train",
+    "dataset_split":"test",
     "dataset_language":"ar",
     "normalize_lufs":false,
     "low_pass_filter":{"apply_low_pass_filter":true, "cutoff_freq":1000}
