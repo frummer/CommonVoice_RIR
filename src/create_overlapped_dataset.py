@@ -186,21 +186,6 @@ def mix_audio(
         sample_rate=config["target_sample_rate"],
         config=compression["compression_config"],
     )
-    # Load audio files
-    y1, sr1 = librosa.load(file1_path, sr=None)
-    y2, sr2 = librosa.load(file2_path, sr=None)
-
-    if sr1 != target_sample_rate:
-        y1 = librosa.resample(y1, orig_sr=sr1, target_sr=target_sample_rate)
-
-    if sr2 != target_sample_rate:
-        y2 = librosa.resample(y2, orig_sr=sr2, target_sr=target_sample_rate)
-    y1 = normalize_mean(y1)
-    y2 = normalize_mean(y2)
-    y1 = peak_normalize(audio=y1, target_peak=0.5)
-    y2 = peak_normalize(audio=y2, target_peak=0.5)
-    y1_lufs = calculate_lufs(y1, sr=target_sample_rate)
-    y2_lufs = calculate_lufs(y2, sr=target_sample_rate)
 
     # Generate unique ID and save mixed audio
     unique_id = str(uuid4())
@@ -220,11 +205,15 @@ def mix_audio(
     os.makedirs(mixture_path, exist_ok=True)
     compressed_mixture_path = os.path.join(output_path, "train", "compressed_mixture")
     os.makedirs(compressed_mixture_path, exist_ok=True)
-    # Save original files
-    original_file1 = os.path.join(subdirectory_path, os.path.basename(file1_path))
-    original_file2 = os.path.join(subdirectory_path, os.path.basename(file2_path))
-    sf.write(original_file1, y1, target_sample_rate)
-    sf.write(original_file2, y2, target_sample_rate)
+    # Load audio files
+    y1, sr1 = librosa.load(file1_path, sr=None)
+    y2, sr2 = librosa.load(file2_path, sr=None)
+
+    if sr1 != target_sample_rate:
+        y1 = librosa.resample(y1, orig_sr=sr1, target_sr=target_sample_rate)
+
+    if sr2 != target_sample_rate:
+        y2 = librosa.resample(y2, orig_sr=sr2, target_sr=target_sample_rate)
 
     # Calculate original lengths
     length1 = len(y1) / target_sample_rate
@@ -239,7 +228,18 @@ def mix_audio(
         pad_length = (len(y2) - len(y1)) / target_sample_rate
         y1 = np.pad(y1, (0, len(y2) - len(y1)), mode="constant")
         padding1, padding2 = pad_length, 0
+    # Save original files
+    original_file1 = os.path.join(subdirectory_path, os.path.basename(file1_path))
+    original_file2 = os.path.join(subdirectory_path, os.path.basename(file2_path))
+    sf.write(original_file1, y1, target_sample_rate)
+    sf.write(original_file2, y2, target_sample_rate)
 
+    y1 = normalize_mean(y1)
+    y2 = normalize_mean(y2)
+    y1 = peak_normalize(audio=y1, target_peak=0.5)
+    y2 = peak_normalize(audio=y2, target_peak=0.5)
+    y1_lufs = calculate_lufs(y1, sr=target_sample_rate)
+    y2_lufs = calculate_lufs(y2, sr=target_sample_rate)
     # apply Room impulse on audio + scaling and save file
     rir, _ = load_random_wav(
         directory=rir_directory, target_sample_rate=target_sample_rate
