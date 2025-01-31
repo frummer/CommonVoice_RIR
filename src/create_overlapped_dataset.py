@@ -694,7 +694,7 @@ if __name__ == "__main__":
     min_noise_desired_snr = config["signal_to_signal_ratios"]["min_noise_desired_snr"]
     max_music_ssr = config["signal_to_signal_ratios"]["max_music_ssr"]
     min_music_ssr = config["signal_to_signal_ratios"]["min_music_ssr"]
-
+    split = config["dataset_split"]
     # load dataset
     dataset = load_dataset("mozilla-foundation/common_voice_12_0",config["dataset_language"],split=config["dataset_split"],trust_remote_code=True)
     if "desired_mixtures_amount" in config:
@@ -711,7 +711,8 @@ if __name__ == "__main__":
     # Format the date and time with underscores
     formatted_date = current_datetime.strftime("%d_%m_%Y_%H_%M_%S")
     # fmt: off
-    output_dir_name = f"{formatted_date}"\
+    output_dir_name = f"{split}"\
+                      f"_{formatted_date}"\
                       f"_{max_conversation_desired_ssr}_{min_conversation_desired_ssr}"\
                       f"_{max_noise_desired_snr}_{min_noise_desired_snr}"\
                       f"_{max_music_ssr}_{min_music_ssr}"
