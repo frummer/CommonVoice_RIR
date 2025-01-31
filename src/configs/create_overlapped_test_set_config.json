@@ -1,9 +1,4 @@
 {
-    "long_audio_threshold": 7.5,
-    "short_audio_threshold":5,
-    "long_length_overlapped_samples_amount": 20,
-    "short_length_overlapped_samples_amount": 10,
-    "mixed_length_overlapped_samples_amount": 10,
     "target_sample_rate": 8000,
     "signal_to_signal_ratios": {
         "max_noise_desired_snr": 20,
