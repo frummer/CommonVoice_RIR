@@ -192,7 +192,7 @@ def mix_audio(
 
     # Generate unique ID and save mixed audio
     unique_id = str(uuid4())
-    print(f"starting:{unique_id}", flush=True)
+    #print(f"starting:{unique_id}", flush=True)
     subdirectory_path = os.path.join(output_path, unique_id)
     os.makedirs(subdirectory_path, exist_ok=True)
     # create directories for training
@@ -474,12 +474,12 @@ def mix_audio(
     )
     if clipping:
         print(
-            f"music - Clipping will occur adding music! Predicted max value: {predicted_max:.2f}"
+            f"music - Clipping will occur adding music! Predicted max value: {predicted_max:.2f}, uuid:{unique_id}"
         )
-    else:
-        print(
-            f"speaker scaling - No clipping expected. Predicted max value: {predicted_max:.2f}"
-        )
+    #else:
+        #print(
+        #    f"speaker scaling - No clipping expected. Predicted max value: {predicted_max:.2f}"
+        #)
     # save scaled and filtered additional music
     additional_ff_scaled_filtered_music_path = os.path.join(
         subdirectory_path, "ff_scaled_filtered_" + addition_music_str
@@ -546,7 +546,7 @@ def mix_audio(
         decoded_mixed_audio_ff_file = postprocess_waveform(
             decoded_pcm, compression["compression_config"]["opus_channels_number"]
         )
-        print(f"Decoded PCM length: {len(decoded_pcm)}")
+        #print(f"Decoded PCM length: {len(decoded_pcm)}")
 
         # Postprocess
         decoded_noisy_mixed_audio_ff_with_music_file = postprocess_waveform(
@@ -584,8 +584,8 @@ def mix_audio(
         target_sample_rate,
     )
 
-    print(f"finished:{unique_id}", flush=True)
-    print("------------------------------------")
+    #print(f"finished:{unique_id}", flush=True)
+    #print("------------------------------------")
 
     # Save metadata
     metadata_entry = {
