@@ -241,6 +241,15 @@ def mix_audio(
     y2 = normalize_mean(y2)
     y1 = peak_normalize(audio=y1, target_peak=0.5)
     y2 = peak_normalize(audio=y2, target_peak=0.5)
+    # validationg equal lengths of all sources - clean and reverbant
+    # Ensure original sources are padded to match the length of the reverberant versions
+    max_len = max(len(ff_audio1), len(ff_audio2))
+
+    y1 = np.pad(y1, (0, max_len - len(y1)), mode="constant")
+    y2 = np.pad(y2, (0, max_len - len(y2)), mode="constant")
+    ff_audio1 = np.pad(ff_audio1, (0, max_len - len(ff_audio1)), mode="constant")
+    ff_audio2 = np.pad(ff_audio2, (0, max_len - len(ff_audio2)), mode="constant")
+
     y1_lufs = calculate_lufs(y1, sr=target_sample_rate)
     y2_lufs = calculate_lufs(y2, sr=target_sample_rate)
     # apply Room impulse on audio + scaling and save file
