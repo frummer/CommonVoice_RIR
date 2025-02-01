@@ -231,16 +231,13 @@ def mix_audio(
         pad_length = (len(y2) - len(y1)) / target_sample_rate
         y1 = np.pad(y1, (0, len(y2) - len(y1)), mode="constant")
         padding1, padding2 = pad_length, 0
-    # Save original files
-    original_file1 = os.path.join(subdirectory_path, os.path.basename(file1_path))
-    original_file2 = os.path.join(subdirectory_path, os.path.basename(file2_path))
-    sf.write(original_file1, y1, target_sample_rate)
-    sf.write(original_file2, y2, target_sample_rate)
 
     y1 = normalize_mean(y1)
     y2 = normalize_mean(y2)
     y1 = peak_normalize(audio=y1, target_peak=0.5)
     y2 = peak_normalize(audio=y2, target_peak=0.5)
+    # validationg equal lengths of all sources - clean and reverbant
+
     y1_lufs = calculate_lufs(y1, sr=target_sample_rate)
     y2_lufs = calculate_lufs(y2, sr=target_sample_rate)
     # apply Room impulse on audio + scaling and save file
@@ -254,6 +251,20 @@ def mix_audio(
     ff_audio2 = normalize_mean(ff_audio2)
     ff_audio1 = peak_normalize(audio=ff_audio1, target_peak=0.5)
     ff_audio2 = peak_normalize(audio=ff_audio2, target_peak=0.5)
+
+    # Ensure original sources are padded to match the length of the reverberant versions
+    max_len = max(len(ff_audio1), len(ff_audio2))
+    y1 = np.pad(y1, (0, max_len - len(y1)), mode="constant")
+    y2 = np.pad(y2, (0, max_len - len(y2)), mode="constant")
+    ff_audio1 = np.pad(ff_audio1, (0, max_len - len(ff_audio1)), mode="constant")
+    ff_audio2 = np.pad(ff_audio2, (0, max_len - len(ff_audio2)), mode="constant")
+
+    # Save original files
+    original_file1 = os.path.join(subdirectory_path, os.path.basename(file1_path))
+    original_file2 = os.path.join(subdirectory_path, os.path.basename(file2_path))
+    sf.write(original_file1, y1, target_sample_rate)
+    sf.write(original_file2, y2, target_sample_rate)
+
     if normalize_lufs:
         ff_audio1, gain1 = get_lufs_norm_audio(
             audio=ff_audio1.squeeze(), sr=target_sample_rate, lufs=-25
