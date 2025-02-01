@@ -231,11 +231,6 @@ def mix_audio(
         pad_length = (len(y2) - len(y1)) / target_sample_rate
         y1 = np.pad(y1, (0, len(y2) - len(y1)), mode="constant")
         padding1, padding2 = pad_length, 0
-    # Save original files
-    original_file1 = os.path.join(subdirectory_path, os.path.basename(file1_path))
-    original_file2 = os.path.join(subdirectory_path, os.path.basename(file2_path))
-    sf.write(original_file1, y1, target_sample_rate)
-    sf.write(original_file2, y2, target_sample_rate)
 
     y1 = normalize_mean(y1)
     y2 = normalize_mean(y2)
@@ -263,6 +258,12 @@ def mix_audio(
     y2 = np.pad(y2, (0, max_len - len(y2)), mode="constant")
     ff_audio1 = np.pad(ff_audio1, (0, max_len - len(ff_audio1)), mode="constant")
     ff_audio2 = np.pad(ff_audio2, (0, max_len - len(ff_audio2)), mode="constant")
+
+    # Save original files
+    original_file1 = os.path.join(subdirectory_path, os.path.basename(file1_path))
+    original_file2 = os.path.join(subdirectory_path, os.path.basename(file2_path))
+    sf.write(original_file1, y1, target_sample_rate)
+    sf.write(original_file2, y2, target_sample_rate)
 
     if normalize_lufs:
         ff_audio1, gain1 = get_lufs_norm_audio(
