@@ -30,7 +30,7 @@ def normalize_to_audio1_power(audio1, audio2):
     power2 = np.mean(audio2**2)
 
     audio2 = audio2 * np.sqrt(power1 / power2)  # Scale audio2 to weaker power
-    print(f"after norm: a1 power:{np.mean(audio1**2)}, a2power:{np.mean(audio2**2)}")
+    #print(f"after norm: a1 power:{np.mean(audio1**2)}, a2power:{np.mean(audio2**2)}")
 
     return audio2
 
@@ -303,8 +303,8 @@ def mix_audio(
     original_file2 = os.path.join(subdirectory_path, os.path.basename(file2_path))
     sf.write(original_file1, y1, target_sample_rate)
     sf.write(original_file2, y2, target_sample_rate)
-    print(f"ff_audio1_before_noise_power:{np.mean(ff_audio1**2)}")
-    print(f"ff_audio2_before_noise_power:{np.mean(ff_audio2**2)}")
+    # print(f"ff_audio1_before_noise_power:{np.mean(ff_audio1**2)}")
+    # print(f"ff_audio2_before_noise_power:{np.mean(ff_audio2**2)}")
     # save far field audios
     ff_original_file1 = os.path.join(
         subdirectory_path, "ff_" + os.path.basename(file1_path)
@@ -380,7 +380,7 @@ def mix_audio(
         ff_mixed_audio, target_peak=0.5
     )
     mixture_before_music_lufs = calculate_lufs(ff_mixed_audio, sr=target_sample_rate)
-    print(f"mixture_before_noise_power:{np.mean(ff_mixed_audio**2)}")
+    # print(f"mixture_before_noise_power:{np.mean(ff_mixed_audio**2)}")
 
     ff_scaled_file1 = os.path.join(
         subdirectory_path, "ff_scaled_filtered_" + os.path.basename(file1_path)
@@ -453,7 +453,7 @@ def mix_audio(
     noisy_ff_mixed_audio, snr_linear, noise_amplitude = add_noise_to_match_snr(
         ff_mixed_audio, snr_db
     )
-    print(f"noisy_mixture_power:{np.mean(noisy_ff_mixed_audio**2)}")
+    # print(f"noisy_mixture_power:{np.mean(noisy_ff_mixed_audio**2)}")
     mixture_before_music_lufs = calculate_lufs(
         noisy_ff_mixed_audio, sr=target_sample_rate
     )
@@ -478,7 +478,7 @@ def mix_audio(
     ff_additional_music_wav = normalize_to_audio1_power(
         audio1=noisy_ff_mixed_audio, audio2=ff_additional_music_wav
     )
-    print(f"music_power:{np.mean(ff_additional_music_wav**2)}")
+    # print(f"music_power:{np.mean(ff_additional_music_wav**2)}")
     # save additional music
     additional_music_path = os.path.join(subdirectory_path, addition_music_str)
     additional_ff_music_path = os.path.join(
@@ -541,9 +541,9 @@ def mix_audio(
         wav_file=noisy_ff_mixed_audio,
         music_scale=music_linear_mult_factor,
     )
-    print(
-        f"noisy_ff_with_music_mixed_audio_power:{np.mean(noisy_ff_with_music_mixed_audio**2)}"
-    )
+    # print(
+    #    f"noisy_ff_with_music_mixed_audio_power:{np.mean(noisy_ff_with_music_mixed_audio**2)}"
+    # )
     if np.max(noisy_ff_with_music_mixed_audio) > 0.9:
         print(f"mixture_before_music_lufs:{mixture_before_music_lufs}")
         print(f"mixture_power_before_music:{mixture_power_before_music}")
@@ -653,6 +653,7 @@ def mix_audio(
         "mix2music_snr_linear": round(float(mix2music_snr_linear), 3),
         "mixture_power_before_music": round(float(mixture_power_before_music), 7),
         "mixture_before_music_lufs": mixture_before_music_lufs,
+        "norm_factor_ff_mixture": round(float(norm_factor_ff_mixture), 3),
         "music_signal_power": round(float(music_signal_power), 7),
         "music_linear_mult_factor": round(float(music_linear_mult_factor), 3),
         "additional_music": addition_music_str,
