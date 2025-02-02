@@ -1,159 +1,103 @@
 import pandas as pd
-from itertools import combinations, cycle
 import random
 import argparse
 
-def generate_speaker_pairs(csv_path):
+def generate_speaker_pairs(csv_path, output_csv, utterance_count_csv, speaker_pair_count_csv):
     """
-    Generates speaker utterance pairs from a given dataset, ensuring balanced pairing across speakers.
-
-    Args:
-        csv_path (str): Path to the input CSV file containing utterance data.
-
-    Input CSV format:
-        - Columns:
-            - Gender: Gender of the speaker (e.g., Male, Female).
-            - Session: Session identifier.
-            - Speaker: Speaker identifier.
-            - SubCategory: Type of utterance.
-            - Recording_Type: Recording setup used.
-            - Utterance_Path: Path to the recorded utterance file.
-        - Example row:
-            | Gender | Session   | Speaker | SubCategory         | Recording_Type | Utterance_Path |
-            |--------|-----------|---------|---------------------|----------------|----------------|
-            | Female | Session_1 | NS1     | 1.SAAB_sentences_1  | Yamaha_Mixer   | path/to/file1.wav |
-
-    Output CSV formats:
-        1. Paired utterances CSV:
-            - Columns:
-                - Speaker_1, Speaker_2: Unique speaker identifiers.
-                - Utterance_1, Utterance_2: Paths to the paired utterances.
-                - Gender_1, Gender_2: Gender of each speaker.
-                - Session_1, Session_2: Session information.
-                - SubCategory_1, SubCategory_2: Utterance subcategories.
-                - Recording_Type_1, Recording_Type_2: Recording type.
-            - Example row:
-                | Speaker_1 | Speaker_2 | Utterance_1 | Utterance_2 | Gender_1 | Gender_2 | Session_1 | Session_2 | SubCategory_1 | SubCategory_2 | Recording_Type_1 | Recording_Type_2 |
-                |-----------|-----------|-------------|-------------|----------|----------|-----------|-----------|---------------|---------------|-----------------|-----------------|
-                | F_NS1     | M_NS2     | path1.wav   | path2.wav   | Female   | Male     | S1        | S2        | Category1     | Category2     | Type1           | Type2           |
-        
-        2. Speaker pair counts CSV:
-            - Columns:
-                - Speaker_1, Speaker_2: Unique speaker identifiers.
-                - Pair_Count: Number of paired utterances.
-            - Example row:
-                | Speaker_1 | Speaker_2 | Pair_Count |
-                |-----------|-----------|------------|
-                | F_NS1     | M_NS2     | 10         |
+    Generates a CSV of paired utterances, ensuring minimal pair repetition between unique speakers.
+    Each speaker is paired with different speakers as evenly as possible, and utterances are not reused.
+    Also tracks how many times each utterance was used and how many times each speaker pair was created.
     """
     # Load the dataset
     df = pd.read_csv(csv_path)
     
-    # Create unique speaker identifiers considering gender
+    # Create unique speaker identifiers
     df["Unique_Speaker"] = df["Gender"] + "_" + df["Speaker"]
     
+    # Group utterances by speaker and shuffle
+    speaker_groups = {sp: group.sample(frac=1, random_state=42).to_dict("records") for sp, group in df.groupby("Unique_Speaker")}
+    
     # Extract unique speakers
-    unique_speakers = df["Unique_Speaker"].unique()
-    random.shuffle(unique_speakers)  # Shuffle for randomness
+    unique_speakers = list(speaker_groups.keys())
     
-    # Create a cycle iterator to ensure diverse pairing
-    speaker_cycle = cycle(unique_speakers)
-    
-    # Create utterance pairs with different speakers
+    # Initialize pairing storage
     utterance_pairs = []
-    used_utterances = set()
-    pair_counts = {}
+    speaker_pair_counts = {sp: {} for sp in unique_speakers}  # Track pair counts between speakers
+    utterance_usage_counts = {}  # Track how many times each utterance is used
     
-    for speaker in unique_speakers:
-        df_speaker = df[df["Unique_Speaker"] == speaker]
+    while any(speaker_groups.values()):
+        random.shuffle(unique_speakers)  # Shuffle speakers each iteration
+        used_speakers = set()
         
-        for _, utterance in df_speaker.iterrows():
-            # Find the next different speaker
-            paired_speaker = next(speaker_cycle)
-            while paired_speaker == speaker:
-                paired_speaker = next(speaker_cycle)
-            
-            df_paired_speaker = df[df["Unique_Speaker"] == paired_speaker]
-            
-            # Select an unused utterance from the paired speaker
-            df_paired_speaker = df_paired_speaker[~df_paired_speaker["Utterance_Path"].isin(used_utterances)]
-            if df_paired_speaker.empty:
+        for speaker in unique_speakers:
+            if not speaker_groups[speaker] or speaker in used_speakers:
                 continue
-            paired_utterance = df_paired_speaker.sample(n=1, random_state=42).iloc[0]
             
-            # Mark utterances as used
-            used_utterances.add(utterance["Utterance_Path"])
-            used_utterances.add(paired_utterance["Utterance_Path"])
+            available_partners = [sp for sp in unique_speakers if sp != speaker and speaker_groups.get(sp) and sp not in used_speakers]
+            
+            if not available_partners:
+                continue
+            
+            # Choose the partner with the fewest existing pairings
+            partner = min(available_partners, key=lambda sp: speaker_pair_counts[speaker].get(sp, 0))
+            
+            # Get one utterance from each
+            utterance_1 = speaker_groups[speaker].pop(0)
+            utterance_2 = speaker_groups[partner].pop(0)
             
             # Store the pair
             utterance_pairs.append({
                 "Speaker_1": speaker,
-                "Speaker_2": paired_speaker,
-                "Utterance_1": utterance["Utterance_Path"],
-                "Utterance_2": paired_utterance["Utterance_Path"],
-                "Gender_1": utterance["Gender"],
-                "Gender_2": paired_utterance["Gender"],
-                "Session_1": utterance["Session"],
-                "Session_2": paired_utterance["Session"],
-                "SubCategory_1": utterance["SubCategory"],
-                "SubCategory_2": paired_utterance["SubCategory"],
-                "Recording_Type_1": utterance["Recording_Type"],
-                "Recording_Type_2": paired_utterance["Recording_Type"]
+                "Speaker_2": partner,
+                "Utterance_1": utterance_1["Utterance_Path"],
+                "Utterance_2": utterance_2["Utterance_Path"],
+                "Gender_1": utterance_1["Gender"],
+                "Gender_2": utterance_2["Gender"],
+                "Session_1": utterance_1["Session"],
+                "Session_2": utterance_2["Session"],
+                "SubCategory_1": utterance_1["SubCategory"],
+                "SubCategory_2": utterance_2["SubCategory"],
+                "Recording_Type_1": utterance_1["Recording_Type"],
+                "Recording_Type_2": utterance_2["Recording_Type"]
             })
             
-            # Track pairing counts
-            pair_key = tuple(sorted([speaker, paired_speaker]))
-            pair_counts[pair_key] = pair_counts.get(pair_key, 0) + 1
+            # Update pairing counts
+            speaker_pair_counts[speaker][partner] = speaker_pair_counts[speaker].get(partner, 0) + 1
+            speaker_pair_counts[partner][speaker] = speaker_pair_counts[partner].get(speaker, 0) + 1
+            
+            # Track utterance usage counts
+            utterance_usage_counts[utterance_1["Utterance_Path"]] = utterance_usage_counts.get(utterance_1["Utterance_Path"], 0) + 1
+            utterance_usage_counts[utterance_2["Utterance_Path"]] = utterance_usage_counts.get(utterance_2["Utterance_Path"], 0) + 1
+            
+            # Mark as used in this round
+            used_speakers.update([speaker, partner])
     
-    # Handle remaining unpaired utterances
-    remaining_utterances = df[~df["Utterance_Path"].isin(used_utterances)]
-    remaining_list = remaining_utterances.sample(frac=1, random_state=42).to_dict("records")
+    # Save paired utterances to CSV
+    df_output = pd.DataFrame(utterance_pairs)
+    df_output.to_csv(output_csv, index=False)
     
-    for i in range(0, len(remaining_list) - 1, 2):
-        utterance_pairs.append({
-            "Speaker_1": remaining_list[i]["Unique_Speaker"],
-            "Speaker_2": remaining_list[i + 1]["Unique_Speaker"],
-            "Utterance_1": remaining_list[i]["Utterance_Path"],
-            "Utterance_2": remaining_list[i + 1]["Utterance_Path"],
-            "Gender_1": remaining_list[i]["Gender"],
-            "Gender_2": remaining_list[i + 1]["Gender"],
-            "Session_1": remaining_list[i]["Session"],
-            "Session_2": remaining_list[i + 1]["Session"],
-            "SubCategory_1": remaining_list[i]["SubCategory"],
-            "SubCategory_2": remaining_list[i + 1]["SubCategory"],
-            "Recording_Type_1": remaining_list[i]["Recording_Type"],
-            "Recording_Type_2": remaining_list[i + 1]["Recording_Type"]
-        })
-        
-        # Track pairing counts
-        pair_key = tuple(sorted([remaining_list[i]["Unique_Speaker"], remaining_list[i + 1]["Unique_Speaker"]]))
-        pair_counts[pair_key] = pair_counts.get(pair_key, 0) + 1
+    # Save utterance usage counts to CSV
+    df_utterance_counts = pd.DataFrame(utterance_usage_counts.items(), columns=["Utterance_Path", "Usage_Count"])
+    df_utterance_counts.to_csv(utterance_count_csv, index=False)
     
-    # Convert to DataFrame
-    pairs_df = pd.DataFrame(utterance_pairs)
-    
-    # Convert pair counts to DataFrame
-    pair_counts_df = pd.DataFrame([(p[0], p[1], count) for p, count in pair_counts.items()], 
-                                  columns=["Speaker_1", "Speaker_2", "Pair_Count"])
-    
-    return pairs_df, pair_counts_df
+    # Save speaker pair counts to CSV
+    speaker_pair_list = [(sp1, sp2, count) for sp1 in speaker_pair_counts for sp2, count in speaker_pair_counts[sp1].items() if sp1 < sp2]
+    df_speaker_pair_counts = pd.DataFrame(speaker_pair_list, columns=["Speaker_1", "Speaker_2", "Pair_Count"])
+    df_speaker_pair_counts.to_csv(speaker_pair_count_csv, index=False)
 
 def main():
     parser = argparse.ArgumentParser(description="Generate speaker utterance pairs from a dataset.")
-    parser.add_argument("--input_csv", type=str, default="/home/afrumme1/CommonVoice_RIR/csv_output/utterance_mapping.csv", help="Path to input CSV file.")
-    parser.add_argument("--output_pairs_csv", type=str, default="/home/afrumme1/CommonVoice_RIR/csv_output/output_pairs.csv", help="Path to output pairs CSV file.")
-    parser.add_argument("--output_counts_csv", type=str, default="/home/afrumme1/CommonVoice_RIR/csv_output/output_counts.csv", help="Path to output pairs count CSV file.")
+    parser.add_argument("--input_csv", type=str, required=True, help="Path to input CSV file.")
+    parser.add_argument("--output_csv", type=str, required=True, help="Path to output CSV file.")
+    parser.add_argument("--utterance_count_csv", type=str, required=True, help="Path to output utterance usage count CSV file.")
+    parser.add_argument("--speaker_pair_count_csv", type=str, required=True, help="Path to output speaker pair count CSV file.")
     
     args = parser.parse_args()
     
-    pairs_df, pair_counts_df = generate_speaker_pairs(args.input_csv)
-    
-    # Save the outputs
-    pairs_df.to_csv(args.output_pairs_csv, index=False)
-    pair_counts_df.to_csv(args.output_counts_csv, index=False)
-    
-    print(f"Generated utterance pairs saved to {args.output_pairs_csv}")
-    print(f"Generated speaker pair counts saved to {args.output_counts_csv}")
+    generate_speaker_pairs(args.input_csv, args.output_csv, args.utterance_count_csv, args.speaker_pair_count_csv)
+    print(f"Generated utterance pairs saved to {args.output_csv}")
+    print(f"Generated utterance usage counts saved to {args.utterance_count_csv}")
+    print(f"Generated speaker pair counts saved to {args.speaker_pair_count_csv}")
 
 if __name__ == "__main__":
     main()
