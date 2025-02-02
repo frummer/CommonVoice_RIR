@@ -24,6 +24,33 @@ from utils.opuslib_module import (
 )
 
 
+def normalize_to_audio1_power(audio1, audio2):
+    """Scales both audios so that they have the power of the weaker one."""
+    power1 = np.mean(audio1**2)
+    power2 = np.mean(audio2**2)
+
+    audio2 = audio2 * np.sqrt(power1 / power2)  # Scale audio2 to weaker power
+    #print(f"after norm: a1 power:{np.mean(audio1**2)}, a2power:{np.mean(audio2**2)}")
+
+    return audio2
+
+
+def normalize_to_weaker_power(audio1, audio2):
+    """Scales both audios so that they have the power of the weaker one."""
+    power1 = np.mean(audio1**2)
+    power2 = np.mean(audio2**2)
+
+    weaker_power = min(power1, power2)  # Find the weaker power
+
+    if power1 > 0:
+        audio1 = audio1 * np.sqrt(weaker_power / power1)  # Scale audio1 to weaker power
+
+    if power2 > 0:
+        audio2 = audio2 * np.sqrt(weaker_power / power2)  # Scale audio2 to weaker power
+    # print(f"after norm: a1 power:{np.mean(audio1**2)}, a2power:{np.mean(audio2**2)}")
+    return audio1, audio2
+
+
 def normalize_mean(audio):
     audio = audio - np.mean(audio)
     return audio
@@ -127,11 +154,21 @@ def calc_scale_factor(audio1, audio2, sns_db_scale: int):
 
 
 def peak_normalize(audio, target_peak=0.98):
-    """Normalize audio so that the maximum absolute amplitude equals target_peak."""
+    """Normalize audio so that the maximum absolute amplitude equals target_peak.
+
+    Returns:
+        - normalized_audio (np.ndarray): Peak normalized audio
+        - scale_factor (float): Multiplication factor used for normalization
+    """
     max_amplitude = np.max(np.abs(audio))
+
     if max_amplitude > 0:  # Avoid division by zero
-        audio = (audio / max_amplitude) * target_peak
-    return audio
+        scale_factor = target_peak / max_amplitude
+        audio = audio * scale_factor
+    else:
+        scale_factor = 1.0  # No scaling if max amplitude is 0 (silence)
+
+    return audio, scale_factor
 
 
 def reduce_high_peaks(audio, threshold=0.9):
@@ -234,8 +271,9 @@ def mix_audio(
 
     y1 = normalize_mean(y1)
     y2 = normalize_mean(y2)
-    y1 = peak_normalize(audio=y1, target_peak=0.5)
-    y2 = peak_normalize(audio=y2, target_peak=0.5)
+    y1, _ = peak_normalize(audio=y1, target_peak=0.5)
+    y2, _ = peak_normalize(audio=y2, target_peak=0.5)
+    y1, y2 = normalize_to_weaker_power(audio1=y1, audio2=y2)
     # validationg equal lengths of all sources - clean and reverbant
 
     y1_lufs = calculate_lufs(y1, sr=target_sample_rate)
@@ -244,13 +282,14 @@ def mix_audio(
     rir, _ = load_random_wav(
         directory=rir_directory, target_sample_rate=target_sample_rate
     )
-    # rir = normalize_audio(rir)
+
     ff_audio1 = apply_rir_to_audio(y1, rir)
     ff_audio2 = apply_rir_to_audio(y2, rir)
     ff_audio1 = normalize_mean(ff_audio1)
     ff_audio2 = normalize_mean(ff_audio2)
-    ff_audio1 = peak_normalize(audio=ff_audio1, target_peak=0.5)
-    ff_audio2 = peak_normalize(audio=ff_audio2, target_peak=0.5)
+    ff_audio1, _ = peak_normalize(audio=ff_audio1, target_peak=0.5)
+    ff_audio2, _ = peak_normalize(audio=ff_audio2, target_peak=0.5)
+    ff_audio1, ff_audio2 = normalize_to_weaker_power(audio1=ff_audio1, audio2=ff_audio2)
 
     # Ensure original sources are padded to match the length of the reverberant versions
     max_len = max(len(ff_audio1), len(ff_audio2))
@@ -264,13 +303,23 @@ def mix_audio(
     original_file2 = os.path.join(subdirectory_path, os.path.basename(file2_path))
     sf.write(original_file1, y1, target_sample_rate)
     sf.write(original_file2, y2, target_sample_rate)
-
+    # print(f"ff_audio1_before_noise_power:{np.mean(ff_audio1**2)}")
+    # print(f"ff_audio2_before_noise_power:{np.mean(ff_audio2**2)}")
+    # save far field audios
+    ff_original_file1 = os.path.join(
+        subdirectory_path, "ff_" + os.path.basename(file1_path)
+    )
+    ff_original_file2 = os.path.join(
+        subdirectory_path, "ff_" + os.path.basename(file2_path)
+    )
+    sf.write(ff_original_file1, ff_audio1, target_sample_rate)
+    sf.write(ff_original_file2, ff_audio2, target_sample_rate)
     if normalize_lufs:
         ff_audio1, gain1 = get_lufs_norm_audio(
-            audio=ff_audio1.squeeze(), sr=target_sample_rate, lufs=-25
+            audio=ff_audio1.squeeze(), sr=target_sample_rate, lufs=-33
         )
         ff_audio2, gain2 = get_lufs_norm_audio(
-            audio=ff_audio2.squeeze(), sr=target_sample_rate, lufs=-25
+            audio=ff_audio2.squeeze(), sr=target_sample_rate, lufs=-33
         )
     # Sample scale factor between audios
     scale_factor_DB = np.random.uniform(
@@ -290,28 +339,13 @@ def mix_audio(
     )
     if clipping:
         print(
-            f"speaker scaling - Clipping will occur! Predicted max value: {predicted_max:.2f}, uuid:{unique_id}"
+            f"speaker scaling - Clipping will occur! Predicted max value: {predicted_max:.2f},linear_mult_factor:{linear_mult_factor} ,uuid:{unique_id}"
         )
     # else:
     #     print(
     #         f"speaker scaling - No clipping expected. Predicted max value: {predicted_max:.2f}"
     #     )
 
-    # save far field audios + save scales far field audio
-    # Save original files
-    ff_original_file1 = os.path.join(
-        subdirectory_path, "ff_" + os.path.basename(file1_path)
-    )
-    ff_original_file2 = os.path.join(
-        subdirectory_path, "ff_" + os.path.basename(file2_path)
-    )
-    ff_scaled_file2 = os.path.join(
-        subdirectory_path, "ff_scaled_" + os.path.basename(file2_path)
-    )
-
-    sf.write(ff_original_file1, ff_audio1, target_sample_rate)
-    sf.write(ff_original_file2, ff_audio2, target_sample_rate)
-    sf.write(ff_scaled_file2, linear_mult_factor * ff_audio2, target_sample_rate)
     freq1 = None
     freq2 = None
 
@@ -337,25 +371,31 @@ def mix_audio(
             cutoff_freq=torch.tensor(float(freq_2), dtype=torch.float32),
         )
         ff_audio2 = ff_audio2.numpy()
-        ff_filtered_original_file1 = os.path.join(
-            subdirectory_path, "ff_filtered_" + os.path.basename(file1_path)
-        )
-        ff_filtered_scaled_file2 = os.path.join(
-            subdirectory_path, "ff_scaled_filtered_" + os.path.basename(file2_path)
-        )
 
-        sf.write(ff_filtered_original_file1, ff_audio1, target_sample_rate)
-        sf.write(
-            ff_filtered_scaled_file2, linear_mult_factor * ff_audio2, target_sample_rate
-        )
     # Mix the audio
 
     ff_mixed_audio = ff_audio1 + linear_mult_factor * ff_audio2
     ff_mixed_audio = normalize_mean(ff_mixed_audio)
-    ff_mixed_audio = peak_normalize(ff_mixed_audio, target_peak=0.5)
+    ff_mixed_audio, norm_factor_ff_mixture = peak_normalize(
+        ff_mixed_audio, target_peak=0.5
+    )
     mixture_before_music_lufs = calculate_lufs(ff_mixed_audio, sr=target_sample_rate)
-    # Save far-field audio
+    # print(f"mixture_before_noise_power:{np.mean(ff_mixed_audio**2)}")
+
+    ff_scaled_file1 = os.path.join(
+        subdirectory_path, "ff_scaled_filtered_" + os.path.basename(file1_path)
+    )
+    ff_scaled_file2 = os.path.join(
+        subdirectory_path, "ff_scaled_filtered_" + os.path.basename(file2_path)
+    )
     mixed_audio_ff_file = os.path.join(subdirectory_path, f"ff_{unique_id}.wav")
+
+    sf.write(ff_scaled_file1, norm_factor_ff_mixture * ff_audio1, target_sample_rate)
+    sf.write(
+        ff_scaled_file2,
+        linear_mult_factor * norm_factor_ff_mixture * ff_audio2,
+        target_sample_rate,
+    )
     sf.write(mixed_audio_ff_file, ff_mixed_audio, target_sample_rate)
 
     # Save decompressed far-field audio
@@ -413,6 +453,7 @@ def mix_audio(
     noisy_ff_mixed_audio, snr_linear, noise_amplitude = add_noise_to_match_snr(
         ff_mixed_audio, snr_db
     )
+    # print(f"noisy_mixture_power:{np.mean(noisy_ff_mixed_audio**2)}")
     mixture_before_music_lufs = calculate_lufs(
         noisy_ff_mixed_audio, sr=target_sample_rate
     )
@@ -428,10 +469,16 @@ def mix_audio(
         directory=music_directory, target_sample_rate=target_sample_rate
     )
     additional_music_wav = normalize_mean(additional_music_wav)
-    additional_music_wav = peak_normalize(additional_music_wav, target_peak=0.5)
+    additional_music_wav, _ = peak_normalize(additional_music_wav, target_peak=0.5)
     ff_additional_music_wav = apply_rir_to_audio(additional_music_wav, rir)
     ff_additional_music_wav = normalize_mean(ff_additional_music_wav)
-    ff_additional_music_wav = peak_normalize(ff_additional_music_wav, target_peak=0.5)
+    ff_additional_music_wav, _ = peak_normalize(
+        ff_additional_music_wav, target_peak=0.5
+    )
+    ff_additional_music_wav = normalize_to_audio1_power(
+        audio1=noisy_ff_mixed_audio, audio2=ff_additional_music_wav
+    )
+    # print(f"music_power:{np.mean(ff_additional_music_wav**2)}")
     # save additional music
     additional_music_path = os.path.join(subdirectory_path, addition_music_str)
     additional_ff_music_path = os.path.join(
@@ -453,7 +500,7 @@ def mix_audio(
     ff_music_lufs = calculate_lufs(ff_additional_music_wav, sr=target_sample_rate)
     if normalize_lufs:
         ff_additional_music_wav, music_gain2 = get_lufs_norm_audio(
-            audio=ff_additional_music_wav.squeeze(), sr=target_sample_rate, lufs=-33
+            audio=ff_additional_music_wav.squeeze(), sr=target_sample_rate, lufs=-40
         )
 
     # Sample scale factor between audios
@@ -474,7 +521,7 @@ def mix_audio(
     )
     if clipping:
         print(
-            f"music - Clipping will occur adding music! Predicted max value: {predicted_max:.2f}, uuid:{unique_id}"
+            f"music - Clipping will occur adding music! Predicted max value:{predicted_max:.2f},music_linear_mult_factor:{music_linear_mult_factor} uuid:{unique_id}"
         )
     # else:
     # print(
@@ -494,8 +541,10 @@ def mix_audio(
         wav_file=noisy_ff_mixed_audio,
         music_scale=music_linear_mult_factor,
     )
-
-    if np.max(noisy_ff_with_music_mixed_audio) > 0.99:
+    # print(
+    #    f"noisy_ff_with_music_mixed_audio_power:{np.mean(noisy_ff_with_music_mixed_audio**2)}"
+    # )
+    if np.max(noisy_ff_with_music_mixed_audio) > 0.9:
         print(f"mixture_before_music_lufs:{mixture_before_music_lufs}")
         print(f"mixture_power_before_music:{mixture_power_before_music}")
         print(f"music_signal_power:{music_signal_power}")
@@ -575,8 +624,14 @@ def mix_audio(
 
     sf.write(source_1_path, y1, target_sample_rate)
     sf.write(source_2_path, y2, target_sample_rate)
-    sf.write(source_1_reverb_path, ff_audio1, target_sample_rate)
-    sf.write(source_2_reverb_path, ff_audio2, target_sample_rate)
+    sf.write(
+        source_1_reverb_path, norm_factor_ff_mixture * ff_audio1, target_sample_rate
+    )
+    sf.write(
+        source_2_reverb_path,
+        norm_factor_ff_mixture * linear_mult_factor * ff_audio2,
+        target_sample_rate,
+    )
     sf.write(mixture_path, noisy_ff_with_music_mixed_audio, target_sample_rate)
     sf.write(
         compressed_mixture_path,
@@ -598,6 +653,7 @@ def mix_audio(
         "mix2music_snr_linear": round(float(mix2music_snr_linear), 3),
         "mixture_power_before_music": round(float(mixture_power_before_music), 7),
         "mixture_before_music_lufs": mixture_before_music_lufs,
+        "norm_factor_ff_mixture": round(float(norm_factor_ff_mixture), 3),
         "music_signal_power": round(float(music_signal_power), 7),
         "music_linear_mult_factor": round(float(music_linear_mult_factor), 3),
         "additional_music": addition_music_str,
