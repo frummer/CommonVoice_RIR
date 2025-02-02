@@ -28,8 +28,8 @@
     },
     "dataset_split":"test",
     "dataset_language":"ar",
-    "desired_mixtures_amount":5,
-    "normalize_lufs":false,
+    "desired_mixtures_amount":1000,
+    "normalize_lufs":true,
     "low_pass_filter":{"apply_low_pass_filter":true, "cutoff_freq":1000}
 }
 
