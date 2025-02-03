@@ -1,0 +1,14 @@
+Creating CommonVoice Dataset - test split
+config path:/home/afrumme1/CommonVoice_RIR/src/configs/create_overlapped_arabic_test_set_on_grid_config.json
+music - Clipping will occur adding music! Predicted max value:1.18,music_linear_mult_factor:0.6927268802343073 uuid:dac4a568-e6bc-4dc2-8a4c-cdb1ccafb634
+music - Clipping will occur adding music! Predicted max value:1.03,music_linear_mult_factor:0.5154360601294425 uuid:5c3f8541-0fe3-4adf-9d85-be2d381e8b7b
+music - Clipping will occur adding music! Predicted max value:1.01,music_linear_mult_factor:0.47383878676169683 uuid:867524c7-0790-4e23-8c7a-edd931109e7d
+music - Clipping will occur adding music! Predicted max value:1.03,music_linear_mult_factor:0.7085515305147587 uuid:d18cf302-111e-44c9-aac4-9fb850a6a6db
+music - Clipping will occur adding music! Predicted max value:1.03,music_linear_mult_factor:0.5141208534654459 uuid:a7715d98-5ffe-426e-a7eb-93fcd7c124f2
+music - Clipping will occur adding music! Predicted max value:1.01,music_linear_mult_factor:0.511513096590766 uuid:bc7537f0-928e-4a10-8180-f458f59f2400
+music - Clipping will occur adding music! Predicted max value:1.01,music_linear_mult_factor:0.4995534985569511 uuid:30429613-f6b3-49a1-ac83-27be058632da
+music - Clipping will occur adding music! Predicted max value:1.01,music_linear_mult_factor:0.5087720776140294 uuid:4d1e76eb-3860-4669-861a-560fd824f276
+
+Total Run Time: 6020.19 seconds
+Total Run Time: 100.34 minutes
+Total Run Time: 1.67 hours

@@ -1,8 +1,8 @@
 {
     "target_sample_rate": 8000,
     "signal_to_signal_ratios": {
-        "max_noise_desired_snr": 20,
-        "min_noise_desired_snr": 10,
+        "max_noise_desired_snr": 30,
+        "min_noise_desired_snr": 20,
         "max_conversation_desired_ssr": 8,
         "min_conversation_desired_ssr": 4,
         "max_music_ssr": 15,
@@ -22,12 +22,13 @@
             "opus_sample_rate_factor": 8000,
             "frame_duration_ms": 20}},
     "directories": {
-        "main_directory": "/export/fs05/afrumme1/babylon_datasets",
-        "rir_directory": "/export/fs05/afrumme1/mit_and_Motus_rir",
-        "music_directory": "/export/corpora6/musan/noise/free-sound"
+        "main_directory": "/app/overlapped_samples",
+        "rir_directory": "/app/MIT_RIR",
+        "music_directory": "/app/free_sound"
     },
-    "dataset_split":"validation",
+    "dataset_split":"test",
     "dataset_language":"ar",
+    "desired_mixtures_amount":5,
     "normalize_lufs":false,
     "low_pass_filter":{"apply_low_pass_filter":true, "cutoff_freq":1000}
 }

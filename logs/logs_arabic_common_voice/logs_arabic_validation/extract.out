@@ -1,0 +1,12 @@
+Creating CommonVoice Dataset - validation split
+config path:/home/afrumme1/CommonVoice_RIR/src/configs/create_overlapped_arabic_validation_set_on_grid_config.json
+music - Clipping will occur adding music! Predicted max value:1.09,music_linear_mult_factor:0.5811039358223086 uuid:ca131222-2858-491f-a918-5fe6d1d13d45
+music - Clipping will occur adding music! Predicted max value:1.02,music_linear_mult_factor:0.5174529116141254 uuid:9576933b-0cd1-48de-a607-928e23ab1831
+music - Clipping will occur adding music! Predicted max value:1.04,music_linear_mult_factor:0.5279174087631516 uuid:c2f01c54-4a63-4cd5-b9b8-07f3e38df9a5
+music - Clipping will occur adding music! Predicted max value:1.20,music_linear_mult_factor:0.68398794244745 uuid:5d7ad0be-dfd5-43ac-8b38-630cda762222
+music - Clipping will occur adding music! Predicted max value:1.02,music_linear_mult_factor:0.5158176155317452 uuid:0147b108-f30f-4c21-a5ae-f68d969c6d27
+music - Clipping will occur adding music! Predicted max value:1.02,music_linear_mult_factor:0.5073934339699723 uuid:0388ba13-9392-4429-822b-bdd3ce89dc52
+
+Total Run Time: 5852.40 seconds
+Total Run Time: 97.54 minutes
+Total Run Time: 1.63 hours

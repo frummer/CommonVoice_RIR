@@ -1,0 +1,19 @@
+Creating LDC 2-spk Mixtures dataset
+config path:/home/afrumme1/CommonVoice_RIR/src/configs/create_ldc_overlapped_dataset_set_config.json
+music - Clipping will occur adding music! Predicted max value:1.13,music_linear_mult_factor:1.088363416385517 uuid:d7829cd9-5b00-4cba-be96-e9b9a578b97a
+music - Clipping will occur adding music! Predicted max value:1.00,music_linear_mult_factor:0.5046486103370633 uuid:828cc4de-cb01-4f2f-b639-0d494cfb0bc5
+music - Clipping will occur adding music! Predicted max value:1.29,music_linear_mult_factor:0.7849052150953314 uuid:cdcb2922-55c4-4724-b732-47ea6a5ceb1c
+music - Clipping will occur adding music! Predicted max value:1.25,music_linear_mult_factor:0.7446019803341425 uuid:5bbf8061-3c48-49db-81e6-64a5df686d59
+music - Clipping will occur adding music! Predicted max value:1.11,music_linear_mult_factor:0.5934151898248685 uuid:b0693b23-bda4-47c1-9813-092f12e12fca
+music - Clipping will occur adding music! Predicted max value:1.04,music_linear_mult_factor:0.5452693635390583 uuid:7c36e36e-5521-4c43-944c-cd36bf2e2116
+music - Clipping will occur adding music! Predicted max value:1.00,music_linear_mult_factor:0.5276255917702446 uuid:85ab98af-aeea-4dfd-b979-c726564929c4
+music - Clipping will occur adding music! Predicted max value:1.16,music_linear_mult_factor:1.2355529929236528 uuid:72b3cd7c-ef80-4304-9792-34cbe4d95475
+music - Clipping will occur adding music! Predicted max value:1.14,music_linear_mult_factor:0.6506055837031708 uuid:baf2f5fc-4b09-4e7b-bacc-388694ffe587
+music - Clipping will occur adding music! Predicted max value:1.04,music_linear_mult_factor:0.5389640079465206 uuid:e29df473-6471-43af-be85-668cf2a51577
+music - Clipping will occur adding music! Predicted max value:1.10,music_linear_mult_factor:0.6073209808607505 uuid:ff318012-6025-43af-9ae7-1ac8e2cf3d7b
+music - Clipping will occur adding music! Predicted max value:1.05,music_linear_mult_factor:0.5416509940138513 uuid:5df757e3-e149-430f-8d27-d22c5aad07a1
+Processing complete. Metadata saved at /export/fs05/afrumme1/babylon_datasets_1/LDC2014S02/dataset_02_02_2025_20_53_02_8_4_20_10_15_10/metadata.json
+
+Total Run Time: 16742.18 seconds
+Total Run Time: 279.04 minutes
+Total Run Time: 4.65 hours
