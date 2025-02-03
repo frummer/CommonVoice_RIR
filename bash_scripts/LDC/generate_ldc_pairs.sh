@@ -20,6 +20,7 @@ source activate /home/afrumme1/miniconda3/envs/common_voice_rir_3
 /home/afrumme1/miniconda3/envs/common_voice_rir_3/bin/python \
     /home/afrumme1/CommonVoice_RIR/src_ldc/generate_speakers_pairs.py  \
     --input_csv /home/afrumme1/CommonVoice_RIR/csv_output/utterance_mapping.csv \
-    --output_pairs_csv /home/afrumme1/CommonVoice_RIR/csv_output/output_pairs.csv \
-    --output_counts_csv /home/afrumme1/CommonVoice_RIR/csv_output/output_counts.csv \
+    --output_csv /home/afrumme1/CommonVoice_RIR/csv_output/output_pairs.csv \
+    --utterance_count_csv /home/afrumme1/CommonVoice_RIR/csv_output/output_utterance_count.csv \
+    --speaker_pair_count_csv /home/afrumme1/CommonVoice_RIR/csv_output/output_pair_count.csv \
 

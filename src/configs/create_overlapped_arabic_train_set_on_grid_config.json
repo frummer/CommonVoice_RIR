@@ -22,7 +22,7 @@
             "opus_sample_rate_factor": 8000,
             "frame_duration_ms": 20}},
     "directories": {
-        "main_directory": "/export/fs05/afrumme1/babylon_datasets",
+        "main_directory": "/export/fs05/afrumme1/babylon_datasets_1/arabic",
         "rir_directory": "/export/fs05/afrumme1/mit_and_Motus_rir",
         "music_directory": "/export/corpora6/musan/noise/free-sound"
     },

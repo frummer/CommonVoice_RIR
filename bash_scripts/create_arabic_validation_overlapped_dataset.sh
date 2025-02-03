@@ -20,4 +20,4 @@ huggingface-cli login --token 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
 
 /home/afrumme1/miniconda3/envs/common_voice_rir_3/bin/python \
     /home/afrumme1/CommonVoice_RIR/src/create_overlapped_dataset.py  \
-    --config_path /home/afrumme1/CommonVoice_RIR/src/configs/create_overlapped_validation_set_on_grid_config.json
+    --config_path /home/afrumme1/CommonVoice_RIR/src/configs/create_overlapped_arabic_validation_set_on_grid_config.json
