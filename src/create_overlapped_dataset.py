@@ -16,8 +16,8 @@ import torchaudio.functional as F
 from datasets import load_dataset
 from tqdm import tqdm
 
-from utils.lufs_utils import calculate_lufs, get_lufs_norm_audio
-from utils.opuslib_module import (
+from src.utils.lufs_utils import calculate_lufs, get_lufs_norm_audio
+from src.utils.opuslib_module import (
     OpusBytesEncoderDecoder,
     postprocess_waveform,
     preprocess_waveform,
@@ -223,7 +223,7 @@ def mix_audio(
         bit_depth=compression["compression_config"]["bit_depth"],
     )
     compression_encoder_decoder.reset_state(
-        sample_rate=config["target_sample_rate"],
+        sample_rate=target_sample_rate,
         config=compression["compression_config"],
     )
 
@@ -299,18 +299,18 @@ def mix_audio(
     ff_audio2 = np.pad(ff_audio2, (0, max_len - len(ff_audio2)), mode="constant")
 
     # Save original files
-    original_file1 = os.path.join(subdirectory_path, os.path.basename(file1_path))
-    original_file2 = os.path.join(subdirectory_path, os.path.basename(file2_path))
+    original_file1 = os.path.join(subdirectory_path, "1_"+os.path.basename(file1_path))
+    original_file2 = os.path.join(subdirectory_path, "2_"+os.path.basename(file2_path))
     sf.write(original_file1, y1, target_sample_rate)
     sf.write(original_file2, y2, target_sample_rate)
     # print(f"ff_audio1_before_noise_power:{np.mean(ff_audio1**2)}")
     # print(f"ff_audio2_before_noise_power:{np.mean(ff_audio2**2)}")
     # save far field audios
     ff_original_file1 = os.path.join(
-        subdirectory_path, "ff_" + os.path.basename(file1_path)
+        subdirectory_path, "ff_1_" + os.path.basename(file1_path)
     )
     ff_original_file2 = os.path.join(
-        subdirectory_path, "ff_" + os.path.basename(file2_path)
+        subdirectory_path, "ff_2_" + os.path.basename(file2_path)
     )
     sf.write(ff_original_file1, ff_audio1, target_sample_rate)
     sf.write(ff_original_file2, ff_audio2, target_sample_rate)
@@ -383,10 +383,10 @@ def mix_audio(
     # print(f"mixture_before_noise_power:{np.mean(ff_mixed_audio**2)}")
 
     ff_scaled_file1 = os.path.join(
-        subdirectory_path, "ff_scaled_filtered_" + os.path.basename(file1_path)
+        subdirectory_path, "ff_scaled_filtered_1_" + os.path.basename(file1_path)
     )
     ff_scaled_file2 = os.path.join(
-        subdirectory_path, "ff_scaled_filtered_" + os.path.basename(file2_path)
+        subdirectory_path, "ff_scaled_filtered_2_" + os.path.basename(file2_path)
     )
     mixed_audio_ff_file = os.path.join(subdirectory_path, f"ff_{unique_id}.wav")
 
