@@ -1,0 +1,6 @@
+Calculating total WAV duration...
+Processing directory: /export/fs05/afrumme1/babylon_datasets_1/LDC2014S02/dataset_02_02_2025_20_53_02_8_4_20_10_15_10/dataset/mixture
+Processing 6759 .wav files with 8 workers...
+
+Total duration of all .wav files: 49 hours, 7 minutes, 58.10 seconds
+WAV duration calculation completed.
