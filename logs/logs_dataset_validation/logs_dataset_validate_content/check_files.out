@@ -1,0 +1,6 @@
+Starting file consistency check...
+Base Directory: /export/fs05/afrumme1/babylon_datasets_1/english/train_01_02_2025_22_37_03_8_4_20_10_15_10/train
+Prefixes: comp_
+Using 'mixture' as reference.
+All subdirectories contain the same files.
+File consistency check completed.
