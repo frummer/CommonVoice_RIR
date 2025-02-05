@@ -23,6 +23,18 @@ from src.utils.opuslib_module import (
     preprocess_waveform,
 )
 
+def get_signals_power_for_validation(path1:str, path2:str, target_sample_rate:int):
+    # Load audio files
+    y1, sr1 = librosa.load(path1, sr=None)
+    y2, sr2 = librosa.load(path2, sr=None)
+    if sr1 != target_sample_rate:
+        y1 = librosa.resample(y1, orig_sr=sr1, target_sr=target_sample_rate)
+
+    if sr2 != target_sample_rate:
+        y2 = librosa.resample(y2, orig_sr=sr2, target_sr=target_sample_rate)
+    signal_power_audio1_ = np.mean(y1**2)
+    signal_power_audio2_ = np.mean(y2**2)
+    return signal_power_audio1_, signal_power_audio2_
 
 def normalize_to_audio1_power(audio1, audio2):
     """Scales both audios so that they have the power of the weaker one."""
@@ -248,7 +260,7 @@ def mix_audio(
     # Load audio files
     y1, sr1 = librosa.load(file1_path, sr=None)
     y2, sr2 = librosa.load(file2_path, sr=None)
-
+    
     if sr1 != target_sample_rate:
         y1 = librosa.resample(y1, orig_sr=sr1, target_sr=target_sample_rate)
 
@@ -725,6 +737,9 @@ def process_common_voice(
         # Step by 2 to ensure no file is reused
         file1_path, transcription1 = data[i]
         file2_path, transcription2 = data[i + 1]
+        signal_power_audio1_ , signal_power_audio2_ = get_signals_power_for_validation(path1=file1_path, path2=file2_path, target_sample_rate=target_sample_rate)
+        if signal_power_audio1_== 0.0 or signal_power_audio2_ == 0.0 :
+            continue
         mix_audio(
             file1_path,
             file2_path,
