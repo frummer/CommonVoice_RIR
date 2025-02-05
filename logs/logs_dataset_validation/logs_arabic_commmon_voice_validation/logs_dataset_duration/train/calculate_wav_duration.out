@@ -1,0 +1,6 @@
+Calculating total WAV duration...
+Processing directory: /export/fs05/afrumme1/babylon_datasets_1/arabic/train_01_02_2025_22_30_14_8_4_20_10_15_10/train/mixture
+Processing 14097 .wav files with 8 workers...
+
+Total duration of all .wav files: 28 hours, 9 minutes, 54.01 seconds
+WAV duration calculation completed.

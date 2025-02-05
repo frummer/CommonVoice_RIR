@@ -1,0 +1,8 @@
+Validating Datasets subdirs length
+Base Directory: /export/fs05/afrumme1/babylon_datasets_1/arabic/validation_01_02_2025_22_27_20_8_4_20_10_15_10/validation
+source2: 5176 .wav files
+source1: 5176 .wav files
+source1_reverb: 5176 .wav files
+source2_reverb: 5176 .wav files
+mixture: 5176 .wav files
+compressed_mixture: 5176 .wav files

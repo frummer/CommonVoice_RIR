@@ -1,0 +1,9 @@
+Validating Datasets subdirs length
+Script started at: Wed Feb  5 12:09:18 PM EST 2025
+Base Directory: /export/fs05/afrumme1/babylon_datasets_1/arabic/test_01_02_2025_22_25_47_8_4_20_10_15_10/test
+source2_reverb: 5216 .wav files
+source2: 5216 .wav files
+source1: 5216 .wav files
+compressed_mixture: 5216 .wav files
+mixture: 5216 .wav files
+source1_reverb: 5216 .wav files

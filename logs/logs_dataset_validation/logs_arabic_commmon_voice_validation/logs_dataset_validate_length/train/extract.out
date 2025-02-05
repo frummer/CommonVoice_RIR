@@ -1,0 +1,9 @@
+Validating Datasets subdirs length
+Script started at: Wed Feb  5 12:05:18 PM EST 2025
+Base Directory: /export/fs05/afrumme1/babylon_datasets_1/arabic/train_01_02_2025_22_30_14_8_4_20_10_15_10/train
+source2_reverb: 14097 .wav files
+mixture: 14097 .wav files
+compressed_mixture: 14097 .wav files
+source2: 14097 .wav files
+source1_reverb: 14097 .wav files
+source1: 14097 .wav files

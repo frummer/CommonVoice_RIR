@@ -1,6 +1,4 @@
 Calculating total WAV duration...
-Processing directory: /export/fs05/afrumme1/babylon_datasets_1/english/train_01_02_2025_22_37_03_8_4_20_10_15_10/train/mixture
-Processing 119728 .wav files with 8 workers...
-
-Total duration of all .wav files: 301 hours, 29 minutes, 56.92 seconds
+Processing directory: /export/fs05/afrumme1/babylon_datasets_1/english/test_04_02_2025_21_41_11_8_4_20_10_15_10/train/mixture
+Error: '/export/fs05/afrumme1/babylon_datasets_1/english/test_04_02_2025_21_41_11_8_4_20_10_15_10/train/mixture' is not a valid directory.
 WAV duration calculation completed.

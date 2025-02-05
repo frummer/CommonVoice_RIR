@@ -1,0 +1,8 @@
+Validating Datasets subdirs length
+Base Directory: /export/fs05/afrumme1/babylon_datasets_1/english/test_04_02_2025_21_41_11_8_4_20_10_15_10/test
+source2: 8179 .wav files
+source2_reverb: 8179 .wav files
+source1: 8179 .wav files
+source1_reverb: 8179 .wav files
+compressed_mixture: 8179 .wav files
+mixture: 8179 .wav files
