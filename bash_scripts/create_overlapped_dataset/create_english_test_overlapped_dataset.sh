@@ -5,10 +5,10 @@
 #SBATCH --job-name=create-test-en-commonvoice-separation-dataset #job name
 #SBATCH --nodes=1  #number of nodes requested
 #SBATCH --partition=cpu  #queue
-#SBATCH --cpus-per-task=4   # Request 4 CPU cores
-#SBATCH --mem=32G           # Request 32GB of RAM
-#SBATCH --error=logs_english_test/extract.err
-#SBATCH --output=logs_english_test/extract.out
+#SBATCH --cpus-per-task=1   # Request 4 CPU cores
+#SBATCH --mem=8G           # Request 32GB of RAM
+#SBATCH --error=logs/logs_english_common_voice/logs_english_test/extract.err
+#SBATCH --output=logs/logs_english_common_voice/logs_english_test/extract.out
 #SBATCH --mail-user=afrumme1@jh.edu  #email for reporting
 
 echo "Creating CommonVoice Dataset - test split"
