@@ -24,7 +24,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --root-user-action=ignore -r requirements.txt
 
 # Set Hugging Face token as an environment variable (replace YOUR_HF_API_TOKEN)
-ENV HF_TOKEN=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
+ENV HF_TOKEN=
 
 # Load and preprocess the dataset
 RUN python -c "from datasets import load_dataset; \
