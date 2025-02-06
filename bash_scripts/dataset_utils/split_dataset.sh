@@ -5,8 +5,8 @@
 #SBATCH --cpus-per-task=1              # Number of CPU cores
 #SBATCH --mem=8G                        # Request 8GB of RAM
 #SBATCH --partition=cpu                 # Queue (partition) name
-#SBATCH --error=logs/logs_ldc/split_dataset/split_dataset.err
-#SBATCH --output=logs/logs_ldc/split_dataset/split_dataset.out
+#SBATCH --error=logs/logs_ldc/logs_split_dataset/split_dataset.err
+#SBATCH --output=logs/logs_ldc/logs_split_dataset/split_dataset.out
 #SBATCH --mail-user=afrumme1@jh.edu     # Email for reporting
 
 echo "Starting dataset splitting job"
@@ -22,7 +22,6 @@ SUB_DIRS="mixture compressed_mixture source1 source1_reverb source2 source2_reve
 REFERENCE_DIR="mixture"
 TRAIN_RATIO=0.8
 VALIDATION_RATIO=0.1
-TEST_RATIO=0.1
 SEED=42
 
 # Echo the arguments for verification
@@ -32,7 +31,6 @@ echo "Subdirectories:      $SUB_DIRS"
 echo "Reference Directory: $REFERENCE_DIR"
 echo "Train Ratio:         $TRAIN_RATIO"
 echo "Validation Ratio:    $VALIDATION_RATIO"
-echo "Test Ratio:          $TEST_RATIO"
 echo "Seed:                $SEED"
 
 # Activate your conda environment
@@ -40,7 +38,7 @@ source activate /home/afrumme1/miniconda3/envs/common_voice_rir_3
 
 # Run the Python script
 /home/afrumme1/miniconda3/envs/common_voice_rir_3/bin/python \
-  /home/afrumme1/CommonVoice_RIR/src/dataset_validation_utils/split_dataset.py  \
+  /home/afrumme1/CommonVoice_RIR/src_ldc/split_dataset.py  \
   --base_dir $BASE_DIR \
   --output_dir $OUTPUT_DIR \
   --sub_dirs $SUB_DIRS \

@@ -1,0 +1,7 @@
+Splitting into train/validation/test:   0%|          | 0/3 [00:00<?, ?it/s]
+Copying for train:   0%|          | 0/6 [00:00<?, ?it/s][A
+Copying for train:  17%|█▋        | 1/6 [53:59<4:29:58, 3239.68s/it][A
+Copying for train:  33%|███▎      | 2/6 [1:51:56<3:45:15, 3378.96s/it][A
+Copying for train:  50%|█████     | 3/6 [2:46:39<2:46:46, 3335.54s/it][A
+Copying for train:  67%|██████▋   | 4/6 [3:23:14<1:36:10, 2885.23s/it][A
+Copying for train:  83%|████████▎ | 5/6 [3:55:58<42:32, 2552.98s/it]  [A
