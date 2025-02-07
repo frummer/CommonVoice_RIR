@@ -65,7 +65,7 @@ echo "Save Full Matrix: $SAVE_FULL_MATRIX"
     --top_z $TOP_Z \
     --output_summary_dir $OUTPUT_SUMMARY_DIR \
     --output_detail_dir $OUTPUT_DETAIL_DIR \
-    --save_full_matrix $SAVE_FULL_MATRIX
+    $SAVE_FULL_MATRIX
 
 # Capture exit status
 if [ $? -eq 0 ]; then

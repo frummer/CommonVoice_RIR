@@ -1,5 +1,5 @@
 Starting audio Separation Metric computation ...
-Script started at: Fri Feb  7 05:44:09 PM EST 2025
+Script started at: Fri Feb  7 05:49:09 PM EST 2025
 Audio Directory: /home/afrumme1/pipelines/separation_enhancement_pipeline/separation_output_prev
 Prefixes: 
 Suffixes: _spk1_corrected _spk2_corrected
@@ -12,23 +12,14 @@ Top Z: 10
 Output Summary Directory: /home/afrumme1/CommonVoice_RIR/output_dir/summary
 Output Detail Directory: /home/afrumme1/CommonVoice_RIR/output_dir/detailed
 Save Full Matrix: 
-Saved full correlation matrix to /home/afrumme1/CommonVoice_RIR/output_dir/detailed/full_matrix/windowed_correlation_matrix_0a0270bc-1ad2-4201-8572-79b26bfd4c34.csv
 Saved top 10 windowed correlations to /home/afrumme1/CommonVoice_RIR/output_dir/detailed/top_results/top_10_windowed_correlations_0a0270bc-1ad2-4201-8572-79b26bfd4c34.csv
-Saved full correlation matrix to /home/afrumme1/CommonVoice_RIR/output_dir/detailed/full_matrix/windowed_correlation_matrix_0a08aff3-6a32-49bc-8520-969d7ca1d2e8.csv
 Saved top 10 windowed correlations to /home/afrumme1/CommonVoice_RIR/output_dir/detailed/top_results/top_10_windowed_correlations_0a08aff3-6a32-49bc-8520-969d7ca1d2e8.csv
-Saved full correlation matrix to /home/afrumme1/CommonVoice_RIR/output_dir/detailed/full_matrix/windowed_correlation_matrix_0a2e3b35-345a-496d-9cb8-9af73911410a.csv
 Saved top 10 windowed correlations to /home/afrumme1/CommonVoice_RIR/output_dir/detailed/top_results/top_10_windowed_correlations_0a2e3b35-345a-496d-9cb8-9af73911410a.csv
-Saved full correlation matrix to /home/afrumme1/CommonVoice_RIR/output_dir/detailed/full_matrix/windowed_correlation_matrix_0a2f9012-b7fb-45ac-89de-7263403e2b91.csv
 Saved top 10 windowed correlations to /home/afrumme1/CommonVoice_RIR/output_dir/detailed/top_results/top_10_windowed_correlations_0a2f9012-b7fb-45ac-89de-7263403e2b91.csv
-Saved full correlation matrix to /home/afrumme1/CommonVoice_RIR/output_dir/detailed/full_matrix/windowed_correlation_matrix_0a43ee0f-aa35-4bf5-ae78-a0efe3540ad9.csv
 Saved top 10 windowed correlations to /home/afrumme1/CommonVoice_RIR/output_dir/detailed/top_results/top_10_windowed_correlations_0a43ee0f-aa35-4bf5-ae78-a0efe3540ad9.csv
-Saved full correlation matrix to /home/afrumme1/CommonVoice_RIR/output_dir/detailed/full_matrix/windowed_correlation_matrix_0a6dc601-335b-4849-bbe9-8b4561334252.csv
 Saved top 10 windowed correlations to /home/afrumme1/CommonVoice_RIR/output_dir/detailed/top_results/top_10_windowed_correlations_0a6dc601-335b-4849-bbe9-8b4561334252.csv
-Saved full correlation matrix to /home/afrumme1/CommonVoice_RIR/output_dir/detailed/full_matrix/windowed_correlation_matrix_0a72ac61-2f00-4b65-b2d1-b4289d5e5c69.csv
 Saved top 10 windowed correlations to /home/afrumme1/CommonVoice_RIR/output_dir/detailed/top_results/top_10_windowed_correlations_0a72ac61-2f00-4b65-b2d1-b4289d5e5c69.csv
-Saved full correlation matrix to /home/afrumme1/CommonVoice_RIR/output_dir/detailed/full_matrix/windowed_correlation_matrix_0a86fca3-8531-4221-ae37-b7350cc981e2.csv
 Saved top 10 windowed correlations to /home/afrumme1/CommonVoice_RIR/output_dir/detailed/top_results/top_10_windowed_correlations_0a86fca3-8531-4221-ae37-b7350cc981e2.csv
-Saved full correlation matrix to /home/afrumme1/CommonVoice_RIR/output_dir/detailed/full_matrix/windowed_correlation_matrix_0a9baf8e-d34b-4209-9c03-6e91ea2b86c2.csv
 Saved top 10 windowed correlations to /home/afrumme1/CommonVoice_RIR/output_dir/detailed/top_results/top_10_windowed_correlations_0a9baf8e-d34b-4209-9c03-6e91ea2b86c2.csv
 Audio metric computation completed successfully!
-Script finished at: Fri Feb  7 05:44:12 PM EST 2025
+Script finished at: Fri Feb  7 05:49:13 PM EST 2025
