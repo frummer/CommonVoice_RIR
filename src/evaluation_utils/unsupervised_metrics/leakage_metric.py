@@ -180,7 +180,7 @@ def compute_windowed_correlation_metric(
     return max_corr, top_entries
 
 
-def compute_metric(file_paths: List[str], metric: str = "unseparation", **kwargs):
+def compute_metric(file_paths: List[str], metric: str = "leakage", **kwargs):
     """
     Dispatches the metric computation. Currently supports:
       - 'leakege' for windowed correlation (detailed output is saved per unique_id).
@@ -214,7 +214,7 @@ def main(
     suffixes: List[str],
     wav_ends_with: str,
     top_x: int = 10,
-    metric: str = "unseparation",
+    metric: str = "leakage",
     window_size: int = None,
     window_step: int = None,
     top_z: int = None,
@@ -468,7 +468,7 @@ if __name__ == "__main__":
         "--metric",
         type=str,
         default="leakege",
-        help="Metric to compute (choose 'unseparation' or 'leakege').",
+        help="Metric to compute ( 'leakege').",
     )
     # Additional parameters for the windowed (leakege) correlation metric.
     parser.add_argument(
