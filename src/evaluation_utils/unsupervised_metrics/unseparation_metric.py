@@ -3,6 +3,7 @@ import csv
 import os
 from collections import defaultdict
 from typing import List, Tuple
+from tqdm import tqdm
 
 import librosa
 import numpy as np
@@ -135,12 +136,16 @@ def save_to_csv(
 
 def main(
     audio_dir: str,
+    output_dir: str,
     prefixes: List[str],
     suffixes: List[str],
     wav_ends_with: str,
     top_x: int = 10,
     metric: str = "unseparation",
 ):
+    # Ensure output directory exists
+    os.makedirs(output_dir, exist_ok=True)
+    
     # 1. List all .wav files in the audio directory.
     wav_files = [f for f in os.listdir(audio_dir) if f.lower().endswith(wav_ends_with)]
 
@@ -153,7 +158,7 @@ def main(
 
     # 3. Compute the metric for each unique ID.
     id_to_score = {}
-    for unique_id, files in id_to_files.items():
+    for unique_id, files in tqdm(id_to_files.items(), desc="Computing metrics", unit="file"):
         try:
             score = compute_metric(files, metric)
         except Exception as e:
@@ -165,7 +170,7 @@ def main(
     sorted_scores = sorted(id_to_score.items(), key=lambda x: x[1])
 
     # 5. Save all scores to a CSV file.
-    all_scores_csv = os.path.join(audio_dir, "all_scores.csv")
+    all_scores_csv = os.path.join(output_dir, "all_scores.csv")
     save_to_csv(sorted_scores, ["id", "score"], all_scores_csv)
 
     # 6. Save top X scores (highest values) to a CSV.
@@ -173,14 +178,14 @@ def main(
         sorted_scores[-top_x:] if len(sorted_scores) >= top_x else sorted_scores
     )
     top_scores = sorted(top_scores, key=lambda x: x[1], reverse=True)
-    top_scores_csv = os.path.join(audio_dir, f"top_{top_x}_scores.csv")
+    top_scores_csv = os.path.join(output_dir, f"top_{top_x}_scores.csv")
     save_to_csv(top_scores, ["id", "score"], top_scores_csv)
 
     # 7. Save bottom X scores (lowest values) to a CSV.
     bottom_scores = (
         sorted_scores[:top_x] if len(sorted_scores) >= top_x else sorted_scores
     )
-    bottom_scores_csv = os.path.join(audio_dir, f"bottom_{top_x}_scores.csv")
+    bottom_scores_csv = os.path.join(output_dir, f"bottom_{top_x}_scores.csv")
     save_to_csv(bottom_scores, ["id", "score"], bottom_scores_csv)
 
     # 8. Identify the median score and its immediate neighbors.
@@ -213,7 +218,7 @@ def main(
             neighbors.append(sorted_scores[median_index + 2])
         median_neighbors = neighbors
 
-    median_csv = os.path.join(audio_dir, "median_and_neighbors.csv")
+    median_csv = os.path.join(output_dir, "median_and_neighbors.csv")
     save_to_csv(median_neighbors, ["id", "score"], median_csv)
 
 
@@ -226,6 +231,12 @@ if __name__ == "__main__":
         type=str,
         default="C:\\Users\\arifr\\git\\CommonVoice_RIR\\src\\evaluation_utils\\separation_output_prev",
         help="Path to the directory containing WAV files.",
+    )
+    parser.add_argument(
+        "--output_dir",
+        type=str,
+        default="C:\\Users\\arifr\\git\\CommonVoice_RIR\\src\\evaluation_utils\\separation_output_prev",
+        help="Path to the directory where CSV output files will be saved.",
     )
     parser.add_argument(
         "--prefixes",
@@ -274,6 +285,7 @@ if __name__ == "__main__":
 
     main(
         args.audio_dir,
+        args.output_dir,
         prefixes=prefixes,
         suffixes=suffixes,
         wav_ends_with=args.wav_ends_with,
