@@ -1,5 +1,5 @@
 Starting dataset splitting job
-Script started at: Thu Feb  6 12:59:38 PM EST 2025
+Script started at: Fri Feb  7 12:20:54 PM EST 2025
 Base Directory:      /export/fs05/afrumme1/babylon_datasets_1/LDC2014S02/dataset_02_02_2025_20_53_02_8_4_20_10_15_10/dataset
 Output Directory:    /export/fs05/afrumme1/babylon_datasets_1/LDC2014S02/v1_split
 Subdirectories:      mixture compressed_mixture source1 source1_reverb source2 source2_reverb
