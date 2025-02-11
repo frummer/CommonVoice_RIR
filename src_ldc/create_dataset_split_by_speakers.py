@@ -1,39 +1,34 @@
 #!/usr/bin/env python3
 
 """
-Split LDC2014S02 Dataset into Train/Validation/Test by Speaker
+Split LDC2014S02 Dataset into Train/Validation/Test by Speaker,
+and for each speaker's 2.Silent_Room subfolders, note whether
+the following files exist:
+  - Mic_CreativeSB.flac
+  - Mobile_CreativeSB.flac
+  - Yamaha_Mixer.flac
+  - OtherFlac (any .flac file *not* one of the three above)
 
 Example Directory Hierarchy:
 
 /export/corpora5/LDC/LDC2014S02/data/
-├── Females
-│   ├── Session_1
-│   │   ├── NS1
-│   │   │   ├── 1.Office
-│   │   │   ├── 2.Silent_Room       <-- we collect paths from here
-│   │   │   └── 3.Cafeteria
-│   │   └── ...
-│   └── Session_2
-│       └── ...
 ├── Males
 │   ├── Session_1
 │   │   ├── NS1
 │   │   │   ├── 1.Office
-│   │   │   ├── 2.Silent_Room       <-- we collect paths from here
+│   │   │   ├── 2.Silent_Room  <-- we collect subfolders from here
+│   │   │   │   ├── 10.Questions_2
+│   │   │   │   │   ├── Mic_CreativeSB.flac
+│   │   │   │   │   ├── Mobile_CreativeSB.flac
+│   │   │   │   │   ├── Yamaha_Mixer.flac
+│   │   │   │   │   └── MyUniqueFile.flac <-- an "other" .flac file
+│   │   │   │   ├── ...
 │   │   │   └── 3.Cafeteria
 │   │   └── ...
-│   ├── Session_2
-│   └── Session_3
-
-We assume:
-- Each top-level directory (Males / Females) contains multiple session directories (Session_1, Session_2, Session_3, ...).
-- Each session directory contains multiple speaker subfolders (S10, NS11, etc.).
-- Each speaker directory contains (optionally) "2.Silent_Room" where the relevant files reside.
-
-This script:
-1. Collects each speaker's `2.Silent_Room` path(s).
-2. Splits the dataset by speaker into train/val/test (80/10/10).
-3. Writes a CSV with columns: [gender, speaker_id, subset, path_to_silent_room].
+│   └── Session_2
+│       └── ...
+└── Females
+    ├── ...
 """
 
 import os
@@ -45,12 +40,22 @@ import argparse
 def split_dataset(args):
     """
     Perform the speaker-based split of the LDC2014S02 dataset
-    and write the resulting CSV file.
+    and write the resulting CSV file with columns:
+      - gender
+      - speaker_id
+      - subset
+      - silent_room_path
+      - basename (the subfolder name)
+      - Mic_CreativeSB (bool)
+      - Mobile_CreativeSB (bool)
+      - Yamaha_Mixer (bool)
+      - OtherFlac (bool)  <-- any .flac besides the three above
     """
+
     # Set random seed for reproducibility.
     random.seed(args.seed)
     
-    # We expect two subfolders in base_dir: Males and Females
+    # We expect two subfolders in base_dir: Males and Females.
     GENDER_DIRS = ["Males", "Females"]
     
     # speaker_dict will map: (gender, speaker_id) -> list_of_silent_room_paths
@@ -63,19 +68,19 @@ def split_dataset(args):
             print(f"Warning: Directory not found for {gender_path}. Skipping.")
             continue
         
-        # Each gender folder has subfolders: Session_1, Session_2, Session_3, ...
+        # Each gender folder: Session_1, Session_2, ...
         for session_dir in os.listdir(gender_path):
             session_path = os.path.join(gender_path, session_dir)
             if not os.path.isdir(session_path):
                 continue
             
-            # Inside each session directory, the subdirectories are speaker IDs
+            # Inside each session, the subdirectories are speaker IDs
             for speaker_id in os.listdir(session_path):
                 speaker_path = os.path.join(session_path, speaker_id)
                 if not os.path.isdir(speaker_path):
                     continue
                 
-                # We specifically want the "2.Silent_Room" folder
+                # Specifically want the "2.Silent_Room" folder
                 silent_room_path = os.path.join(speaker_path, "2.Silent_Room")
                 
                 if os.path.isdir(silent_room_path):
@@ -101,22 +106,75 @@ def split_dataset(args):
     test_speakers  = all_speakers[val_cutoff:]
     
     # 3) Write results to CSV
-    # Columns: gender, speaker_id, subset, path_to_silent_room
+    #
+    # We'll add a column "OtherFlac" to indicate if there's any .flac
+    # file *other* than the known 3 (Mic_CreativeSB, Mobile_CreativeSB, Yamaha_Mixer).
+
+    known_flac_files = {
+        "Mic_CreativeSB.flac",
+        "Mobile_CreativeSB.flac",
+        "Yamaha_Mixer.flac"
+    }
+    
     with open(args.output_csv, "w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(["gender", "speaker_id", "subset", "path_to_silent_room"])
+        writer.writerow([
+            "gender",
+            "speaker_id",
+            "subset",
+            "silent_room_path",
+            "basename",
+            "Mic_CreativeSB",
+            "Mobile_CreativeSB",
+            "Yamaha_Mixer",
+            "OtherFlac"
+        ])
         
-        for (gender, spk_id) in train_speakers:
-            for p in speaker_dict[(gender, spk_id)]:
-                writer.writerow([gender, spk_id, "train", p])
+        def write_rows_for_subset(speakers, subset_name):
+            """Utility to write CSV rows for a given subset."""
+            for (gender, spk_id) in speakers:
+                # The speaker may have multiple sessions' 2.Silent_Room paths
+                for silent_path in speaker_dict[(gender, spk_id)]:
+                    # For each subfolder in 2.Silent_Room:
+                    subdirs = [
+                        d for d in os.listdir(silent_path)
+                        if os.path.isdir(os.path.join(silent_path, d))
+                    ]
+                    for subfolder in subdirs:
+                        subfolder_path = os.path.join(silent_path, subfolder)
+                        
+                        # Collect all .flac files in this subfolder
+                        flac_files = [
+                            fname for fname in os.listdir(subfolder_path)
+                            if fname.lower().endswith(".flac")
+                        ]
+                        
+                        # Check for the 3 known flacs
+                        has_mic = "Mic_CreativeSB.flac" in flac_files
+                        has_mobile = "Mobile_CreativeSB.flac" in flac_files
+                        has_yamaha = "Yamaha_Mixer.flac" in flac_files
+                        
+                        # Check if there's any other .flac besides the known ones
+                        other_flacs = set(flac_files) - known_flac_files
+                        has_other = len(other_flacs) > 0
+                        
+                        # Write one row per subfolder
+                        writer.writerow([
+                            gender,
+                            spk_id,
+                            subset_name,
+                            silent_path,
+                            subfolder,  # 'basename' of the subfolder
+                            has_mic,
+                            has_mobile,
+                            has_yamaha,
+                            has_other
+                        ])
         
-        for (gender, spk_id) in val_speakers:
-            for p in speaker_dict[(gender, spk_id)]:
-                writer.writerow([gender, spk_id, "val", p])
-        
-        for (gender, spk_id) in test_speakers:
-            for p in speaker_dict[(gender, spk_id)]:
-                writer.writerow([gender, spk_id, "test", p])
+        # Write for train, val, test
+        write_rows_for_subset(train_speakers, "train")
+        write_rows_for_subset(val_speakers,   "val")
+        write_rows_for_subset(test_speakers,  "test")
     
     print(f"Done! Wrote CSV to '{args.output_csv}'.")
     print(f"Total speakers: {num_speakers} "
@@ -125,7 +183,10 @@ def split_dataset(args):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Split LDC2014S02 dataset by speaker into train/val/test."
+        description="Split LDC2014S02 dataset by speaker into train/val/test, "
+                    "and annotate whether each subfolder in 2.Silent_Room "
+                    "contains known .flac files (Mic_CreativeSB, Mobile_CreativeSB, "
+                    "Yamaha_Mixer) and/or any *other* .flac file."
     )
     parser.add_argument(
         "--base_dir",
