@@ -1,7 +1,7 @@
 Starting Ellipsis Metric computation ...
-Script started at: Fri Feb  7 07:14:39 PM EST 2025
-Separated Audio Directory: /home/afrumme1/pipelines/separation_enhancement_pipeline/separation_output_prev
-Mixtures Audio Directory: /home/afrumme1/pipelines/separation_enhancement_pipeline/separation_input_prev
+Script started at: Sun Feb  9 01:36:39 AM EST 2025
+Separated Audio Directory: /home/afrumme1/pipelines/separation_enhancement_pipeline/separation_output_cv_ar
+Mixtures Audio Directory: /export/fs05/afrumme1/babylon_datasets_1/arabic/test_01_02_2025_22_25_47_8_4_20_10_15_10/test/mixture
 Prefixes: 
 Suffixes: _spk1_corrected _spk2_corrected
 WAV Ends With: _corrected.wav
@@ -12,4 +12,4 @@ Saved top 3 scores CSV to /home/afrumme1/CommonVoice_RIR/output_dir/ellipsis_sum
 Saved bottom 3 scores CSV to /home/afrumme1/CommonVoice_RIR/output_dir/ellipsis_summary/ellipsis_bottom_3_scores.csv
 Saved median and neighbors CSV to /home/afrumme1/CommonVoice_RIR/output_dir/ellipsis_summary/ellipsis_median_and_neighbors.csv
 Ellipsis metric computation completed successfully!
-Script finished at: Fri Feb  7 07:14:44 PM EST 2025
+Script finished at: Sun Feb  9 02:00:14 AM EST 2025

@@ -1,0 +1,11 @@
+Starting audio Separation Metric computation  ...
+Script started at: Tue Feb 11 12:10:12 AM EST 2025
+Audio Directory: /home/afrumme1/pipelines/separation_enhancement_pipeline/separation_LDC2014S02_V1_test_output
+Prefixes: 
+Suffixes: _spk1_corrected _spk2_corrected
+Top X: 3
+Metric: unseparation
+WAV Ends With: _corrected.wav
+Output Directory: /home/afrumme1/CommonVoice_RIR/output_dir/LDC_V1/unseparation
+Audio metric computation completed successfully!
+Script finished at: Tue Feb 11 12:10:19 AM EST 2025

@@ -1,0 +1,9 @@
+Validating Datasets subdirs length
+Script started at: Mon Feb 10 07:49:58 PM EST 2025
+Base Directory: /export/fs05/afrumme1/babylon_datasets_1/LDC2014S02/V1_split/validation
+source1: 675 .wav files
+compressed_mixture: 675 .wav files
+source2_reverb: 675 .wav files
+source2: 675 .wav files
+mixture: 675 .wav files
+source1_reverb: 675 .wav files

@@ -17,12 +17,15 @@ module load conda
 
 # Define arguments
 BASE_DIR="/export/fs05/afrumme1/babylon_datasets_1/LDC2014S02/dataset_02_02_2025_20_53_02_8_4_20_10_15_10/dataset"
-OUTPUT_DIR="/export/fs05/afrumme1/babylon_datasets_1/LDC2014S02/v1_split"
+OUTPUT_DIR="/export/fs05/afrumme1/babylon_datasets_1/LDC2014S02/V1_split"
 SUB_DIRS="mixture compressed_mixture source1 source1_reverb source2 source2_reverb"
 REFERENCE_DIR="mixture"
 TRAIN_RATIO=0.8
 VALIDATION_RATIO=0.1
 SEED=42
+
+# Create output directories if they do not exist
+mkdir -p "$OUTPUT_DIR"
 
 # Echo the arguments for verification
 echo "Base Directory:      $BASE_DIR"

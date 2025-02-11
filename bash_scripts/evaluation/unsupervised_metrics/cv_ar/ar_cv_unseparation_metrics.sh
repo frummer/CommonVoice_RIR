@@ -21,7 +21,7 @@ module load conda
 conda activate /home/afrumme1/miniconda3/envs/common_voice_rir_3
 
 # Define arguments
-AUDIO_DIR=/home/afrumme1/pipelines/separation_enhancement_pipeline/separation_output_prev
+AUDIO_DIR=/home/afrumme1/pipelines/separation_enhancement_pipeline/separation_output_cv_ar
 PREFIXES=""
 SUFFIXES="_spk1_corrected _spk2_corrected"
 TOP_X=3

@@ -1,6 +1,6 @@
 Starting audio Separation Metric computation  ...
-Script started at: Fri Feb  7 05:24:39 PM EST 2025
-Audio Directory: /home/afrumme1/pipelines/separation_enhancement_pipeline/separation_output_prev
+Script started at: Sun Feb  9 01:31:42 AM EST 2025
+Audio Directory: /home/afrumme1/pipelines/separation_enhancement_pipeline/separation_output_cv_ar
 Prefixes: 
 Suffixes: _spk1_corrected _spk2_corrected
 Top X: 3
@@ -8,4 +8,4 @@ Metric: unseparation
 WAV Ends With: _corrected.wav
 Output Directory: /home/afrumme1/CommonVoice_RIR/output_dir
 Audio metric computation completed successfully!
-Script finished at: Fri Feb  7 05:24:41 PM EST 2025
+Script finished at: Sun Feb  9 01:41:13 AM EST 2025

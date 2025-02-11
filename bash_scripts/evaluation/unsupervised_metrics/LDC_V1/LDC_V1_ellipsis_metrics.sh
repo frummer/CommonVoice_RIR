@@ -5,8 +5,8 @@
 #SBATCH --cpus-per-task=1   # Request 1 CPU core
 #SBATCH --mem=8G            # Request 8GB of RAM
 #SBATCH --partition=cpu  # Queue
-#SBATCH --error=/home/afrumme1/CommonVoice_RIR/logs/logs_unsupervised_metrics_ar_cv/ellipsis_logs/error.log
-#SBATCH --output=/home/afrumme1/CommonVoice_RIR/logs/logs_unsupervised_metrics_ar_cv/ellipsis_logs/output.log
+#SBATCH --error=/home/afrumme1/CommonVoice_RIR/logs/logs_unsupervised_metrics/LDC_V1/ellipsis/error.log
+#SBATCH --output=/home/afrumme1/CommonVoice_RIR/logs/logs_unsupervised_metrics/LDC_V1/ellipsis/output.log
 #SBATCH --mail-user=afrumme1@jh.edu  # Email for reporting
 #SBATCH --mail-type=END,FAIL
 
@@ -20,13 +20,13 @@ module load conda
 conda activate /home/afrumme1/miniconda3/envs/common_voice_rir_3
 
 # Define arguments with default values
-SEPARATED_AUDIO_DIR=/home/afrumme1/pipelines/separation_enhancement_pipeline/separation_output_prev
-MIXTURES_AUDIO_DIR=/home/afrumme1/pipelines/separation_enhancement_pipeline/separation_input_prev
+SEPARATED_AUDIO_DIR=/home/afrumme1/pipelines/separation_enhancement_pipeline/separation_LDC2014S02_V1_test_output
+MIXTURES_AUDIO_DIR=/export/fs05/afrumme1/babylon_datasets_1/LDC2014S02/V1_split/test/mixture
 PREFIXES=""
 SUFFIXES="_spk1_corrected _spk2_corrected"
 WAV_ENDS_WITH="_corrected.wav"
 TOP_X=3
-OUTPUT_DIR=/home/afrumme1/CommonVoice_RIR/output_dir/ellipsis_summary
+OUTPUT_DIR=/home/afrumme1/CommonVoice_RIR/output_dir/LDC_V1/ellipsis
 
 # Create output directory if it does not exist
 mkdir -p "$OUTPUT_DIR"

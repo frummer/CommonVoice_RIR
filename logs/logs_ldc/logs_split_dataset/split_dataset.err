@@ -1,14 +1,25 @@
 Splitting into train/validation/test:   0%|          | 0/3 [00:00<?, ?it/s]
 Copying for train:   0%|          | 0/6 [00:00<?, ?it/s][A
-Copying for train:  17%|█▋        | 1/6 [41:49<3:29:08, 2509.68s/it][A
-Copying for train:  33%|███▎      | 2/6 [1:23:03<2:45:53, 2488.38s/it][A
-Copying for train:  50%|█████     | 3/6 [1:58:29<1:56:09, 2323.04s/it][A
-Copying for train:  67%|██████▋   | 4/6 [2:38:54<1:18:46, 2363.37s/it][A
-Copying for train:  83%|████████▎ | 5/6 [3:19:08<39:41, 2381.64s/it]  [A
-Copying for train: 100%|██████████| 6/6 [3:59:55<00:00, 2403.84s/it][A
-                                                                    [ASplitting into train/validation/test:  33%|███▎      | 1/3 [3:59:55<7:59:51, 14395.60s/it]
+Copying for train:  17%|█▋        | 1/6 [39:23<3:16:59, 2363.99s/it][A
+Copying for train:  33%|███▎      | 2/6 [1:19:39<2:39:36, 2394.18s/it][A
+Copying for train:  50%|█████     | 3/6 [1:57:42<1:57:10, 2343.37s/it][A
+Copying for train:  67%|██████▋   | 4/6 [2:36:31<1:17:55, 2337.76s/it][A
+Copying for train:  83%|████████▎ | 5/6 [3:15:46<39:04, 2344.01s/it]  [A
+Copying for train: 100%|██████████| 6/6 [3:52:07<00:00, 2288.43s/it][A
+                                                                    [ASplitting into train/validation/test:  33%|███▎      | 1/3 [3:52:07<7:44:14, 13927.05s/it]
 Copying for validation:   0%|          | 0/6 [00:00<?, ?it/s][A
-Copying for validation:  17%|█▋        | 1/6 [05:23<26:56, 323.34s/it][A
-Copying for validation:  33%|███▎      | 2/6 [10:46<21:34, 323.50s/it][A
-Copying for validation:  50%|█████     | 3/6 [15:44<15:35, 311.79s/it][A
-Copying for validation:  67%|██████▋   | 4/6 [20:51<10:19, 309.75s/it][A
+Copying for validation:  17%|█▋        | 1/6 [05:30<27:30, 330.04s/it][A
+Copying for validation:  33%|███▎      | 2/6 [10:58<21:55, 328.96s/it][A
+Copying for validation:  50%|█████     | 3/6 [16:01<15:51, 317.05s/it][A
+Copying for validation:  67%|██████▋   | 4/6 [21:27<10:41, 320.56s/it][A
+Copying for validation:  83%|████████▎ | 5/6 [26:37<05:17, 317.07s/it][A
+Copying for validation: 100%|██████████| 6/6 [31:56<00:00, 317.73s/it][A
+                                                                      [ASplitting into train/validation/test:  67%|██████▋   | 2/3 [4:24:04<1:54:22, 6862.31s/it] 
+Copying for test:   0%|          | 0/6 [00:00<?, ?it/s][A
+Copying for test:  17%|█▋        | 1/6 [05:25<27:05, 325.18s/it][A
+Copying for test:  33%|███▎      | 2/6 [11:09<22:24, 336.18s/it][A
+Copying for test:  50%|█████     | 3/6 [16:20<16:14, 324.72s/it][A
+Copying for test:  67%|██████▋   | 4/6 [21:46<10:50, 325.23s/it][A
+Copying for test:  83%|████████▎ | 5/6 [26:47<05:16, 316.68s/it][A
+Copying for test: 100%|██████████| 6/6 [31:44<00:00, 309.79s/it][A
+                                                                [ASplitting into train/validation/test: 100%|██████████| 3/3 [4:55:48<00:00, 4598.28s/it]  Splitting into train/validation/test: 100%|██████████| 3/3 [4:55:48<00:00, 5916.04s/it]

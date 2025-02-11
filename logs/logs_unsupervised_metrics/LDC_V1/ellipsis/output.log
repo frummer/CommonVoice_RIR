@@ -1,0 +1,15 @@
+Starting Ellipsis Metric computation ...
+Script started at: Tue Feb 11 12:08:54 AM EST 2025
+Separated Audio Directory: /home/afrumme1/pipelines/separation_enhancement_pipeline/separation_LDC2014S02_V1_test_output
+Mixtures Audio Directory: /export/fs05/afrumme1/babylon_datasets_1/LDC2014S02/V1_split/test/mixture
+Prefixes: 
+Suffixes: _spk1_corrected _spk2_corrected
+WAV Ends With: _corrected.wav
+Top X: 3
+Output Directory: /home/afrumme1/CommonVoice_RIR/output_dir/LDC_V1/ellipsis
+Saved summary CSV to /home/afrumme1/CommonVoice_RIR/output_dir/LDC_V1/ellipsis/ellipsis_summary.csv
+Saved top 3 scores CSV to /home/afrumme1/CommonVoice_RIR/output_dir/LDC_V1/ellipsis/ellipsis_top_3_scores.csv
+Saved bottom 3 scores CSV to /home/afrumme1/CommonVoice_RIR/output_dir/LDC_V1/ellipsis/ellipsis_bottom_3_scores.csv
+Saved median and neighbors CSV to /home/afrumme1/CommonVoice_RIR/output_dir/LDC_V1/ellipsis/ellipsis_median_and_neighbors.csv
+Ellipsis metric computation completed successfully!
+Script finished at: Tue Feb 11 12:09:07 AM EST 2025
