@@ -38,8 +38,8 @@ def process_ldc_dataset(
     df = pd.read_csv(csv_path)
 
     for _, row in tqdm(df.iterrows(), total=len(df), desc="Processing LDC Mixtures"):
-        file1_path = row["Utterance_1"]
-        file2_path = row["Utterance_2"]
+        file1_path = row["path_1"]
+        file2_path = row["path_2"]
 
         # Ensure files exist before mixing
         if not os.path.exists(file1_path) or not os.path.exists(file2_path):
