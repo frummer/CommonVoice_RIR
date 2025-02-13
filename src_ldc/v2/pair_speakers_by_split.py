@@ -129,13 +129,13 @@ def main():
     parser.add_argument(
         "--input_csv",
         type=str,
-        default="C:\\Users\\arifr\\git\\CommonVoice_RIR\\ldc_splits.csv",
+        default="/home/afrumme1/CommonVoice_RIR/output_dir/LDC_V2_dataset_creation/ldc_splits.csv",
         help="Input CSV file from the previous script (with microphone columns).",
     )
     parser.add_argument(
         "--output_dir",
         type=str,
-        default="ldc_pairs",
+        default="/home/afrumme1/CommonVoice_RIR/output_dir/LDC_V2_dataset_creation",
         help="Output directory for the {subset}_pairs.csv files.",
     )
     args = parser.parse_args()

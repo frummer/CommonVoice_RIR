@@ -35,6 +35,7 @@ import argparse
 import csv
 import os
 import random
+from tqdm import tqdm
 
 
 def split_dataset(args):
@@ -69,7 +70,7 @@ def split_dataset(args):
             continue
 
         # Each gender folder: Session_1, Session_2, ...
-        for session_dir in os.listdir(gender_path):
+        for session_dir in tqdm(os.listdir(gender_path), desc="Processing sessions"):
             session_path = os.path.join(gender_path, session_dir)
             if not os.path.isdir(session_path):
                 continue
@@ -204,13 +205,13 @@ def main():
     parser.add_argument(
         "--base_dir",
         type=str,
-        default="C:\\Users\\arifr\Downloads\\data",
+        default="/export/corpora5/LDC/LDC2014S02/data",
         help="Base directory of the LDC2014S02 dataset.",
     )
     parser.add_argument(
         "--output_csv",
         type=str,
-        default="ldc_splits.csv",
+        default="/home/afrumme1/CommonVoice_RIR/output_dir/LDC_V2_dataset_creation/ldc_splits.csv",
         help="Output CSV file for splits.",
     )
     parser.add_argument(
