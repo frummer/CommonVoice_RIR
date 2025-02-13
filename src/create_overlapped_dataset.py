@@ -283,13 +283,17 @@ def mix_audio(
 
     # Pad the shorter file
     if len(y1) > len(y2):
-        pad_length = (len(y1) - len(y2)) / target_sample_rate
-        y2 = np.pad(y2, (0, len(y1) - len(y2)), mode="constant")
-        padding1, padding2 = 0, pad_length
+        total_pad = len(y1) - len(y2)
+        left_pad = total_pad // 2
+        right_pad = total_pad - left_pad
+        y2 = np.pad(y2, (left_pad, right_pad), mode="constant")
+        padding1, padding2 = 0, total_pad / target_sample_rate
     else:
-        pad_length = (len(y2) - len(y1)) / target_sample_rate
-        y1 = np.pad(y1, (0, len(y2) - len(y1)), mode="constant")
-        padding1, padding2 = pad_length, 0
+        total_pad = len(y2) - len(y1)
+        left_pad = total_pad // 2
+        right_pad = total_pad - left_pad
+        y1 = np.pad(y1, (left_pad, right_pad), mode="constant")
+        padding1, padding2 = total_pad / target_sample_rate, 0
 
     y1 = normalize_mean(y1)
     y2 = normalize_mean(y2)
