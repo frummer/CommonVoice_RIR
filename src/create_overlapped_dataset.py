@@ -22,6 +22,12 @@ from src.utils.opuslib_module import (
     postprocess_waveform,
     preprocess_waveform,
 )
+def get_noisy_reverberent_source(audio,noise_snr,music,music_scale):
+    #make audio noise
+    noisy_audio,_,_ = add_noise_to_match_snr(audio=audio,snr_db=noise_snr)
+    #add music
+    noisy_reverberent_source = add_music_to_mixed_file(music=music,wav_file=noisy_audio,music_scale=music_scale)
+    return noisy_reverberent_source
 
 def get_signals_power_for_validation(path1:str, path2:str, target_sample_rate:int):
     # Load audio files
@@ -257,6 +263,10 @@ def mix_audio(
     os.makedirs(mixture_path, exist_ok=True)
     compressed_mixture_path = os.path.join(output_path, split, "compressed_mixture")
     os.makedirs(compressed_mixture_path, exist_ok=True)
+    source1_noisy_reverb = os.path.join(output_path, split, "source1_noisy_reverb")
+    os.makedirs(source1_noisy_reverb, exist_ok=True)
+    source2_noisy_reverb = os.path.join(output_path, split, "source2_noisy_reverb")
+    os.makedirs(source2_noisy_reverb, exist_ok=True)
     # Load audio files
     y1, sr1 = librosa.load(file1_path, sr=None)
     y2, sr2 = librosa.load(file2_path, sr=None)
@@ -619,6 +629,9 @@ def mix_audio(
             target_sample_rate,
         )
 
+    noisy_reverberenat_source1=get_noisy_reverberent_source(audio=norm_factor_ff_mixture*ff_audio1,noise_snr=snr_db,music=ff_additional_music_wav,music_scale=music_linear_mult_factor)
+    noisy_reverberenat_source2=get_noisy_reverberent_source(audio=norm_factor_ff_mixture* linear_mult_factor* ff_audio2,noise_snr=snr_db,music=ff_additional_music_wav,music_scale=music_linear_mult_factor)
+
     # save files to training dir
 
     source_1_path = os.path.join(output_path, split, "source1", f"{unique_id}.wav")
@@ -629,9 +642,12 @@ def mix_audio(
     source_2_reverb_path = os.path.join(
         output_path, split, "source2_reverb", f"{unique_id}.wav"
     )
+    source_1_noisy_reverberent_path = os.path.join(output_path, split, "source1_noisy_reverb", f"{unique_id}.wav")
+    source_2_noisy_reverberent_path = os.path.join(output_path, split, "source2_noisy_reverb", f"{unique_id}.wav")
+
     mixture_path = os.path.join(output_path, split, "mixture", f"{unique_id}.wav")
     compressed_mixture_path = os.path.join(
-        output_path, split, "compressed_mixture", f"comp_{unique_id}.wav"
+        output_path, split, "compressed_mixture", f"{unique_id}.wav"
     )
 
     sf.write(source_1_path, y1, target_sample_rate)
@@ -642,6 +658,16 @@ def mix_audio(
     sf.write(
         source_2_reverb_path,
         norm_factor_ff_mixture * linear_mult_factor * ff_audio2,
+        target_sample_rate,
+    )
+    sf.write(
+        source_1_noisy_reverberent_path,
+        noisy_reverberenat_source1,
+        target_sample_rate,
+    )
+    sf.write(
+        source_2_noisy_reverberent_path,
+        noisy_reverberenat_source2,
         target_sample_rate,
     )
     sf.write(mixture_path, noisy_ff_with_music_mixed_audio, target_sample_rate)
