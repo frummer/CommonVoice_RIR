@@ -7,8 +7,8 @@
 #SBATCH --cpus-per-task=1   # Request 2 CPU cores
 #SBATCH --mem=8G           # Request 16GB of RAM
 #SBATCH --partition=cpu  #queue
-#SBATCH --error=logs/logs_dataset_validation/logs_LDC_validation/logs_dataset_validate_length/train/extract.err
-#SBATCH --output=logs/logs_dataset_validation/logs_LDC_validation/logs_dataset_validate_length/train/extract.out
+#SBATCH --error=/home/afrumme1/CommonVoice_RIR/logs/logs_dataset_validation/logs_LDC_validation_V2/validate_dataset_subdirs_length/validation/extract.err
+#SBATCH --output=/home/afrumme1/CommonVoice_RIR/logs/logs_dataset_validation/logs_LDC_validation_V2/validate_dataset_subdirs_length/validation/extract.out
 #SBATCH --mail-user=afrumme1@jh.edu  #email for reporting
 #SBATCH --mail-type=END,FAIL,BEGIN
 echo "Validating Datasets subdirs length"
@@ -18,7 +18,7 @@ module purge
 module load conda 
 
 # Define arguments
-BASE_DIR=/export/fs05/afrumme1/babylon_datasets_1/LDC2014S02/V1_split/train
+BASE_DIR=/export/fs05/afrumme1/babylon_datasets_2/LDC2014S02/validation_13_02_2025_00_58_48_8_4_20_10_15_10/validation
 # Echo the arguments for verification
 echo "Base Directory: $BASE_DIR"
 
