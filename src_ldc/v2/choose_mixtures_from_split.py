@@ -25,7 +25,7 @@ Typical usage:
 import argparse
 
 import pandas as pd
-
+from tqdm import tqdm
 
 def balance_pairs_with_limit_and_summary(
     csv_in: str,
@@ -104,7 +104,7 @@ def balance_pairs_with_limit_and_summary(
 
     # Sample from each group
     balanced_dfs = []
-    for _, group_df in grouped:
+    for _, group_df in tqdm(grouped, desc="Balancing groups"):
         if len(group_df) > per_pair:
             balanced_dfs.append(group_df.sample(n=per_pair, random_state=random_state))
         else:
